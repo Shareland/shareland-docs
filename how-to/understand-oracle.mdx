@@ -7,24 +7,38 @@ description: How Shareland prices SQFT tokens in real time.
 
 The Shareland oracle is the engine that prices SQFT tokens. It aggregates real estate transaction data to produce a live, reliable price per square foot for each market.
 
+<Frame caption="Shareland — Live oracle price chart">
+  <img src="/images/screenshots/oracle-chart.png" alt="Oracle price chart" />
+</Frame>
+
 ## Data sources
 
-The oracle pulls from multiple data sources including recorded home sales and listing data across US markets. Data is weighted by recency, transaction volume, and geographic relevance.
+The oracle pulls from multiple data sources — recorded home sales, active listing data, and pricing signals across US markets. Data is weighted by recency, transaction volume, and geographic relevance to produce a single authoritative $/sqft price per geography.
 
 ## Price updates
 
-Oracle prices update on a regular cadence. You'll see price charts reflecting these updates in real time on the exchange.
+Oracle prices update on a continuous basis. You'll see price charts reflecting these updates in real time on the exchange. Historical oracle data is available on every market's detail panel.
+
+## Neighborhood breakdown
+
+Each market is composed of sub-neighborhoods, each with their own $/sqft weighting. The market detail panel shows the individual neighborhood data contributing to the overall market price.
+
+<Frame caption="Shareland — Neighborhood breakdown panel">
+  <img src="/images/screenshots/market-detail.png" alt="Neighborhood breakdown" />
+</Frame>
 
 ## Market halts
 
-If the oracle detects an anomaly - such as a sudden price spike that falls outside expected parameters - the market may automatically halt to protect traders. You'll receive an email notification if any market you hold positions in halts.
-
-Markets resume once the anomaly is investigated and resolved.
-
-## Methodology
-
-Shareland's oracle methodology was developed in collaboration with researchers at the Wharton School. The approach uses academically validated models for neighborhood-level real estate pricing.
+If the oracle detects an anomaly — such as a sudden price movement outside expected parameters — trading may automatically halt for that market. You'll receive an email notification if any market you hold positions in halts. Markets resume once the anomaly is investigated and resolved.
 
 <Note>
-  A full methodology document is available for anyone who wants to understand the pricing model in depth. Contact the team to request access.
+  Market halts are a safety mechanism. Your tokens remain in your wallet and are unaffected during a halt.
 </Note>
+
+## Research foundation
+
+Shareland's oracle methodology was developed in collaboration with researchers at the Wharton School, including Dr. Susan Wachter and Dr. Andrey Pavlov — two of the world's leading real estate economists. The approach uses academically validated models for neighborhood-level residential real estate pricing.
+
+<Card title="View supported markets" icon="map" href="/guides/supported-markets">
+  See which markets are currently live
+</Card>
