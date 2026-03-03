@@ -29,6 +29,7 @@
             "group": "Getting Started",
             "pages": [
               "guides/introduction",
+              "guides/quickstart",
               "guides/why-shareland",
               "guides/what-is-sqft",
               "guides/how-it-works",
