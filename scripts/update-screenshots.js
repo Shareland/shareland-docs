@@ -1,45 +1,46 @@
 #!/usr/bin/env node
 /**
  * Shareland Docs — Screenshot Updater
- * Takes screenshots of key exchange screens and saves them to /images/screenshots/
- * Run manually or via cron after deploys.
  * 
- * Usage: node scripts/update-screenshots.js
+ * Takes screenshots of key exchange screens and saves them to /images/screenshots/
+ * Run manually once a demo URL is available: node scripts/update-screenshots.js
+ * 
  * Requires: playwright (npm install playwright)
+ * 
+ * TODO: Update DEMO_BASE_URL once Darian/Eric set up the demo bypass parameter
+ * e.g. https://share.land/?demo=true
  */
 
 const { chromium } = require('playwright');
 const path = require('path');
 const fs = require('fs');
 
-const BASE_URL = 'https://www.share.land/?device_id=internal-tester';
+// TODO: replace with real demo URL once available
+const DEMO_BASE_URL = 'https://share.land/?demo=true';
+
 const OUTPUT_DIR = path.join(__dirname, '../images/screenshots');
 
 const SCREENS = [
   {
-    name: 'exchange-home',
-    url: BASE_URL,
-    description: 'Exchange home / market list',
-    waitFor: '.market-card, [data-testid="market-list"]',
-    clip: null // full page
+    name: 'markets',
+    url: DEMO_BASE_URL,
+    description: 'Exchange home — market list',
   },
   {
     name: 'market-detail',
-    url: BASE_URL,
-    description: 'Market detail view',
-    action: async (page) => {
-      // Click first market card
-      await page.click('.market-card:first-child, [data-testid="market-card"]:first-child');
-      await page.waitForTimeout(1500);
-    },
-    clip: null
+    url: `${DEMO_BASE_URL}&market=los-angeles`,
+    description: 'Market detail view — price chart, trade panel',
   },
   {
     name: 'portfolio',
-    url: `${BASE_URL}#portfolio`,
-    description: 'Portfolio dashboard',
-    clip: null
-  }
+    url: `${DEMO_BASE_URL}&view=portfolio`,
+    description: 'Portfolio dashboard — positions and P&L',
+  },
+  {
+    name: 'buy-flow',
+    url: `${DEMO_BASE_URL}&market=los-angeles&action=buy`,
+    description: 'Buy flow — token purchase',
+  },
 ];
 
 async function captureScreenshots() {
@@ -50,7 +51,7 @@ async function captureScreenshots() {
   const browser = await chromium.launch();
   const context = await browser.newContext({
     viewport: { width: 1440, height: 900 },
-    deviceScaleFactor: 2 // retina
+    deviceScaleFactor: 2,
   });
 
   console.log(`Capturing ${SCREENS.length} screenshots...`);
@@ -60,19 +61,8 @@ async function captureScreenshots() {
       const page = await context.newPage();
       await page.goto(screen.url, { waitUntil: 'networkidle' });
       await page.waitForTimeout(2000);
-
-      if (screen.waitFor) {
-        await page.waitForSelector(screen.waitFor, { timeout: 10000 }).catch(() => {
-          console.warn(`  Selector not found for ${screen.name}, continuing anyway`);
-        });
-      }
-
-      if (screen.action) {
-        await screen.action(page);
-      }
-
       const outPath = path.join(OUTPUT_DIR, `${screen.name}.png`);
-      await page.screenshot({ path: outPath, fullPage: true });
+      await page.screenshot({ path: outPath, fullPage: false });
       console.log(`  ✅ ${screen.name} → ${outPath}`);
       await page.close();
     } catch (err) {
@@ -81,7 +71,7 @@ async function captureScreenshots() {
   }
 
   await browser.close();
-  console.log('\nDone. Commit the /images/screenshots/ directory to update docs.');
+  console.log('\nDone. Commit images/screenshots/ to update docs.');
 }
 
 captureScreenshots().catch(console.error);
