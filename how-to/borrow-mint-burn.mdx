@@ -1,0 +1,43 @@
+---
+title: Borrow, Mint, and Burn
+description: How to mint (borrow) tokens against collateral and burn them to close positions.
+---
+
+# Minting, Borrowing, and Burning
+
+On Shareland, "borrowing" and "minting" refer to the same action: creating new SQFT tokens by locking collateral.
+
+## What is Minting?
+
+Minting is the process of creating new SQFT tokens. When you mint, you are effectively borrowing from the protocol.
+
+1.  **Lock Collateral:** You deposit USDC into the protocol vault.
+2.  **Mint SQFT:** The protocol issues new SQFT tokens to your wallet.
+3.  **Debt Position:** You now have a debt position equal to the value of the minted tokens. To unlock your collateral, you must return (burn) the same number of SQFT tokens.
+
+## Collateralization & Liquidation
+
+To ensure the system remains solvent, all minted positions must be over-collateralized.
+
+*   **Minimum Collateralization Ratio (MCR):** 110%
+    *   This is the liquidation threshold. If your collateral value falls below 110% of your debt value, your position may be liquidated.
+*   **Recommendation:** We strongly recommend minting at a ratio of **120% or higher** to provide a safety buffer against price movements.
+
+<Warning>
+  **Liquidation Risk:** If the price of SQFT rises (increasing your debt value) or the value of your collateral falls, your ratio decreases. Monitor your health factor closely.
+</Warning>
+
+## Burning (Closing a Position)
+
+To close your position and retrieve your collateral:
+
+1.  **Burn Tokens:** You send SQFT tokens back to the protocol.
+2.  **Unlock Collateral:** The protocol releases your deposited USDC.
+3.  **Profit/Loss:** If the SQFT price has dropped since you minted, you can buy back the tokens for less than you sold them for, keeping the difference as profit (shorting).
+
+## Example
+
+*   **Collateral:** You deposit $1,100 USDC.
+*   **Mint:** You mint $1,000 worth of SQFT tokens.
+*   **Ratio:** Your collateralization ratio is 110% ($1,100 / $1,000).
+*   This is the minimum. To be safe, you should deposit more collateral (e.g., $1,200) or mint fewer tokens.
