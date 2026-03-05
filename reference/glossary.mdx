@@ -26,7 +26,7 @@ description: Key terms used on the Shareland exchange.
 </ResponseField>
 
 <ResponseField name="Collateral">
-  SQFT tokens used to secure a borrow position. If the value of your collateral drops below the liquidation threshold, your position may be partially liquidated to repay the loan.
+  SQFT tokens used to secure a borrow position. Shareland requires a minimum collateralization ratio (MCR) of 110%. If your ratio drops to 110%, your position is automatically liquidated. Recommended minimum is 120%.
 </ResponseField>
 
 <ResponseField name="Mint">
@@ -54,7 +54,7 @@ description: Key terms used on the Shareland exchange.
 </ResponseField>
 
 <ResponseField name="Market Halt">
-  A temporary pause in trading triggered when the oracle detects an anomaly — such as a pricing error from a third-party data provider. Your tokens remain unaffected during a halt.
+  A temporary pause in trading triggered when Shareland detects suspicious activity or anomalous pricing. Used to protect marketplace health. Your tokens remain in your wallet and are unaffected during a halt.
 </ResponseField>
 
 <ResponseField name="Privy">

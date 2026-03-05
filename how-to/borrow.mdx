@@ -9,11 +9,11 @@ Shareland lets you borrow USDC against your SQFT token holdings — unlocking li
 
 ## Step 1: Open a market
 
-From the exchange, click any market card to open the detail panel.
+From the exchange, click any market card to open the action panel. You can also access this from your Portfolio by clicking on an existing position.
 
 ## Step 2: Open the Borrow tab
 
-In the market detail panel, click **Trade** then select the **Borrow** tab.
+In the action panel, select the **Borrow** tab.
 
 <Frame caption="Shareland — Borrow panel">
   <img src="/images/screenshots/borrow.png" alt="Borrow panel" />
@@ -21,18 +21,25 @@ In the market detail panel, click **Trade** then select the **Borrow** tab.
 
 ## Step 3: Enter your amount
 
-Enter the USDC amount you want to borrow. The panel shows:
-- Your available collateral (SQFT token value)
-- Loan-to-value ratio
-- Estimated interest rate
+Enter the USDC amount you want to borrow. The panel shows your available collateral value and how much you can safely borrow.
+
+## Collateralization
+
+Shareland uses a **Minimum Collateralization Ratio (MCR) of 110%**. This means for every $110 of collateral value, you can borrow up to $100 USDC.
+
+We recommend maintaining at least **120% collateralization** to give yourself a buffer against price movements.
+
+<Warning>
+  If your collateralization ratio drops to 110%, your position will be automatically liquidated to repay the loan. Monitor your position regularly, especially during volatile markets.
+</Warning>
 
 ## Step 4: Confirm
 
 Review the terms and confirm. Borrowed USDC is sent to your connected wallet immediately.
 
-<Warning>
-  If your collateral value drops below the liquidation threshold, your position may be partially liquidated to repay the loan. Monitor your position regularly.
-</Warning>
+## Repaying
+
+To repay a borrow position and reclaim your full collateral, return to the Borrow tab and repay the outstanding USDC balance.
 
 <Card title="Understand the oracle" icon="circle-info" href="/how-to/understand-oracle">
   Learn how collateral values are calculated
