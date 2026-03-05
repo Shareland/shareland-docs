@@ -17,9 +17,16 @@ Oracle prices update on a regular cadence. You'll see price charts reflecting th
 
 ## Market halts
 
-If the oracle detects an anomaly — such as a sudden price spike that falls outside expected parameters — the market may automatically halt to protect investors. Halts will be displayed in the exchange UI and we may send notifically depending on your account notification settings.
+If the oracle detects an anomaly — such as a sudden price spike that falls outside expected parameters — the market may automatically halt to protect investors. Halts will be displayed in the exchange UI and we may send notifications depending on your account notification settings.
 
 Markets resume once the anomaly is investigated and resolved.
+
+## Oracle vs. Market Price
+
+The **Oracle Price** represents the true underlying value of the real estate per square foot.
+
+*   **Debt Calculation:** Your debt position (collateralization ratio) is always calculated using the Oracle Price, not the secondary market trading price.
+*   **Liquidation:** Liquidations are triggered ONLY if the Oracle Price moves significantly enough to drop your ratio below 110%. Exchange market volatility does not trigger liquidation.
 
 ## Methodology
 
