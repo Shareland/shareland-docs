@@ -60,7 +60,7 @@
               "how-to/buy-sqft",
               "how-to/sell-sqft",
               "how-to/stake-sqft",
-              "how-to/borrow",
+              "how-to/borrow-mint-burn",
               "how-to/understand-oracle"
             ]
           },
@@ -79,7 +79,7 @@
           {
             "group": "Resources",
             "pages": [
-              "reference/faq",
+              "reference/feq",
               "reference/glossary",
               "reference/regulatory"
             ]
