@@ -1,0 +1,92 @@
+{
+  "$schema": "https://mintlify.com/schema.json",
+  "name": "Shareland",
+  "logo": {
+    "dark": "/images/logo-dark.png",
+    "light": "/images/logo-light.png",
+    "href": "https://share.land"
+  },
+  "favicon": "/images/favicon.png",
+  "colors": {
+    "primary": "#7C3AED",
+    "light": "#A78BFA",
+    "dark": "#5B21B6",
+    "background": {
+      "dark": "#0D0D0D"
+    }
+  },
+  "topbarLinks": [
+    {
+      "name": "Exchange",
+      "url": "https://share.land"
+    }
+  ],
+  "topbarCtaButton": {
+    "name": "Start Investing",
+    "url": "https://share.land"
+    },
+   "tabs": [
+    {
+      "name": "Guides",
+      "url": "guides"
+    },
+    {
+      "name": "How-To",
+      "url": "how-to"
+    },
+    {
+      "name": "Reference",
+      "url": "reference"
+    }
+  ],
+  "anchors": [
+    {
+      "name": "Exchange",
+      "icon": "arrow-up-right",
+      "url": "https://share.land"
+    },
+    {
+      "name": "Community",
+      "icon": "discord",
+      "url": "https://discord.gg/shareland"
+    },
+    {
+      "name": "Twitter",
+      "icon": "x-twitter",
+      "url": "https://twitter.com/shareland"
+    }
+  ],
+  "navigation": [
+    {
+      "group": "Getting Started",
+      "pages": [
+        "guides/introduction",
+        "guides/what-are-sqft-tokens",
+        "guides/how-it-works",
+        "guides/supported-markets"
+      ]
+    },
+    {
+      "group": "How To",
+      "pages": [
+        "how-to/create-account",
+        "how-to/buy-sqft",
+        "how-to/sell-sqft",
+        "how-to/view-portfolio",
+        "how-to/understand-oracle"
+      ]
+    },
+    {
+      "group": "Reference",
+      "pages": [
+        "reference/faq",
+        "reference/glossary",
+        "reference/regulatory"
+      ]
+    }
+  ],
+  "footerSocials": {
+    "x-twitter": "https://twitter.com/shareland",
+    "discord": "https://discord.gg/shareland"
+  }
+}
