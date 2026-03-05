@@ -9,22 +9,27 @@ description: Answers to the most common questions about Shareland.
 
 <AccordionGroup>
   <Accordion title="Is Shareland available in my country?">
-    Shareland is not available to residents of the United States or other restricted jurisdictions. During sign-up, you'll be asked to confirm your jurisdiction. Users in restricted countries will not be able to access the exchange.
+    Shareland is not available to citizens or residents of the United States, Canada, UK, Mainland China, Cuba, Iran, North Korea, Syria, Myanmar, Afghanistan, Belarus, Central African Republic, DR Congo, Libya, Mali, Nicaragua, Somalia, Sudan, Venezuela, Yemen, Zimbabwe, or the Crimea/Donetsk/Luhansk regions.
+
+    During sign-up, you'll be asked to confirm your jurisdiction. Users in restricted countries will not be able to access the exchange. Using a VPN to bypass geofencing is a violation of our Terms of Service.
   </Accordion>
   <Accordion title="What is the minimum trade size?">
-    There is a **$0.10 minimum per trade**. No maximum - trade any amount above that.
+    **$0.10 minimum per trade.** No maximum — trade any amount above that.
   </Accordion>
   <Accordion title="How much does it cost to trade?">
     Shareland charges a flat **1.5% fee** on each transaction (buy or sell). No management fees, no withdrawal fees, no hidden charges.
   </Accordion>
   <Accordion title="Do I own actual real estate?">
-    No. SQFT tokens are synthetic instruments that track the price per square foot of real estate. You gain price exposure without owning physical property - similar to how commodity futures let you gain exposure to oil prices without owning barrels of oil.
+    No. SQFT tokens are synthetic instruments that track the price per square foot of real estate in specific neighborhoods. You gain price exposure without owning physical property — similar to how commodity futures give you exposure to oil prices without owning barrels of oil.
   </Accordion>
   <Accordion title="How is SQFT priced?">
-    SQFT tokens are priced by Shareland's oracle, which aggregates real estate transaction data and listing prices in real time. The methodology was developed with Wharton School researchers.
+    SQFT tokens are priced by Shareland's proprietary oracle, which aggregates real estate transaction data and listing prices. The methodology was developed with researchers from the Wharton School (Dr. Susan Wachter and Dr. Andrey Pavlov). Shareland acts as the sole pricing authority.
   </Accordion>
   <Accordion title="Can I lose money?">
     Yes. SQFT tokens reflect real estate prices, which can go down as well as up. Only trade what you can afford to lose. Please read all risk disclosures before trading.
+  </Accordion>
+  <Accordion title="Is there a mobile app?">
+    Not yet. Shareland currently runs as a web application accessible from any mobile or desktop browser. A native mobile app is on the roadmap.
   </Accordion>
 </AccordionGroup>
 
@@ -32,13 +37,19 @@ description: Answers to the most common questions about Shareland.
 
 <AccordionGroup>
   <Accordion title="What happens if a market halts?">
-    If the oracle detects an anomaly, the market may automatically halt. You'll receive an email notification. Your tokens remain in your wallet and are unaffected. Markets resume once the anomaly is resolved.
+    If the oracle detects an anomaly or a price shock caused by erroneous third-party data, the market may automatically halt. You'll receive an email notification. Your tokens remain in your wallet and are unaffected. Markets resume once the issue is resolved.
   </Accordion>
   <Accordion title="What happens if USDC depegs?">
     If USDC depegs by more than 1% from USD, the Shareland protocol will automatically halt trading. You can still modify your collateral position to prevent accidental liquidation.
   </Accordion>
   <Accordion title="How do I withdraw my funds?">
-    Sell your SQFT tokens and proceeds return to your connected wallet. From there, transfer to any external wallet or exchange.
+    Sell your SQFT tokens — proceeds return to your connected wallet immediately after the on-chain transaction confirms. From there, transfer to any external wallet or exchange as you normally would.
+  </Accordion>
+  <Accordion title="What is staking?">
+    Staking lets you lock your SQFT tokens to earn USDC rewards. Staked tokens continue to track the oracle price — your real estate exposure is maintained while you earn yield. Rewards accrue continuously and can be claimed at any time from your Portfolio.
+  </Accordion>
+  <Accordion title="What is borrowing?">
+    You can use your SQFT token holdings as collateral to borrow USDC without closing your position. This lets you unlock liquidity while staying exposed to real estate prices. If your collateral value drops below the liquidation threshold, your position may be partially liquidated.
   </Accordion>
 </AccordionGroup>
 
@@ -46,9 +57,18 @@ description: Answers to the most common questions about Shareland.
 
 <AccordionGroup>
   <Accordion title="How is my wallet secured?">
-    Shareland uses Privy for secure, non-custodial key management. You control your keys - Shareland never has custody of your funds.
+    Shareland uses [Privy](https://privy.io) for secure, non-custodial wallet management. You control your keys — Shareland never takes custody of your funds or private keys.
+  </Accordion>
+  <Accordion title="What blockchain does Shareland run on?">
+    Shareland runs on the **Base** blockchain — an Ethereum L2 built by Coinbase. All transactions are executed programmatically via self-custodial wallets.
+  </Accordion>
+  <Accordion title="Are there tax implications?">
+    Tax treatment of synthetic derivative instruments varies by jurisdiction. Shareland does not provide tax advice. We recommend consulting a tax professional familiar with digital assets in your country.
+  </Accordion>
+  <Accordion title="How do I add funds to trade?">
+    Connect your wallet during sign-up. You'll need USDC on Base to start trading. You can bridge USDC from other networks or buy it directly through your wallet provider.
   </Accordion>
   <Accordion title="Is Shareland regulated?">
-    SQFT tokens are structured as synthetic derivative instruments. Shareland is working toward compliance with applicable regulatory frameworks. See our [Terms of Service](https://share.land/terms) for the full legal picture.
+    SQFT tokens are structured as synthetic derivative instruments — not securities. Shareland is pursuing regulatory clarity under the **CFTC** framework, following pathways established by Polymarket and Kalshi. See our [Terms of Service](https://share.land/terms) for the full legal picture.
   </Accordion>
 </AccordionGroup>
