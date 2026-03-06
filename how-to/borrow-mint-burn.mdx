@@ -37,13 +37,7 @@ Choose the amount of SQFT tokens you want to burn (return to the protocol).
 
 Review and confirm. The protocol burns your SQFT tokens and releases the corresponding USDC collateral back to your wallet.
 
-## What is Minting?
-
-Minting is the process of creating new SQFT tokens. When you mint, you are effectively borrowing from the protocol.
-
-1.  **Lock Collateral:** You deposit USDC into the protocol vault.
-2.  **Mint SQFT:** The protocol issues new SQFT tokens to your wallet.
-3.  **Debt Position:** You now have a debt position equal to the value of the minted tokens. To unlock your collateral, you must return (burn) the same number of SQFT tokens.
+If the SQFT price has dropped since you minted, you can buy back the tokens for less than you sold them for, keeping the difference as profit (shorting).
 
 ## Collateralization & Liquidation
 
@@ -56,14 +50,6 @@ To ensure the system remains solvent, all minted positions must be over-collater
 <Warning>
   **Liquidation Risk:** If the **Oracle price** of the underlying real estate rises (increasing your debt value relative to your collateral), your collateralization ratio decreases. Monitor your health factor closely. Market price fluctuations on the exchange do **not** affect your liquidation risk directly, only changes in the Oracle price do.
 </Warning>
-
-## Burning (Closing a Position)
-
-To close your position and retrieve your collateral:
-
-1.  **Burn Tokens:** You send SQFT tokens back to the protocol.
-2.  **Unlock Collateral:** The protocol releases your deposited USDC.
-3.  **Profit/Loss:** If the SQFT price has dropped since you minted, you can buy back the tokens for less than you sold them for, keeping the difference as profit (shorting).
 
 ## Example
 
