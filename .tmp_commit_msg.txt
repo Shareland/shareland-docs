@@ -1,0 +1,9 @@
+fix: FAQ accuracy audit and cross-site consistency fixes
+
+- Rewrite "How is SQFT priced?" to clarify market sets price, oracle is reference
+- Fix Pavlov attribution: Simon Fraser University, not Wharton (across 4 pages)
+- Fix staking description: accurately describe LP deposit, not "exposure maintained"
+- Change minimum trade to "no minimum size, $0.10 min fee" (FAQ + buy-sqft)
+- Remove USDC depeg FAQ (unverifiable threshold)
+- Fix oracle descriptions to say "publishes reference price" not "prices tokens"
+- Escape remaining $/sqft across 4 more files
