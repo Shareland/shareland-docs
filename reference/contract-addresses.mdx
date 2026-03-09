@@ -7,7 +7,7 @@ Shareland runs entirely on-chain on **Base** (chainId 8453). All contracts are v
 
 ## Core Contracts
 
-These are the beacon proxy addresses that users interact with.
+These are the beacon addresses that users interact with.
 
 | Contract | Address | BaseScan |
 |----------|---------|----------|
@@ -40,7 +40,7 @@ These are the beacon proxy addresses that users interact with.
 
 ## Architecture
 
-Shareland uses an **upgradeable beacon proxy pattern** (OpenZeppelin). The addresses above are the proxies that users interact with. Implementation contracts sit behind the beacon and can be upgraded without changing the proxy address.
+Shareland uses an **upgradeable beacon proxy pattern** (OpenZeppelin). The core addresses above are beacons. Individual market proxies point to these beacons, and implementation contracts sit behind them. Beacons can be upgraded without changing any proxy addresses.
 
 All implementation source code is verified on BaseScan.
 
