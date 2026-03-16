@@ -1,35 +1,92 @@
 ---
 title: Understanding the Oracle
-description: How Shareland prices SQFT tokens in real time.
+description: How Shareland prices SQFT tokens in real time using academically validated methodology.
 ---
 
 The Shareland oracle publishes a reference price for each SQFT market. It aggregates real estate transaction data to produce a live, reliable price per square foot, which the market uses as an anchor through arbitrage incentives.
 
 ## Data sources
 
-The oracle pulls from multiple data sources including recorded home sales and listing data across US markets. Data is weighted by recency, transaction volume, and geographic relevance.
+The oracle aggregates data from multiple authoritative sources to produce neighborhood-level price per square foot estimates:
+
+- **County recorder offices** — Official deed records of closed home sales with verified transaction prices
+- **Multiple Listing Services (MLS)** — Active listings and pending transactions across participating brokerages
+- **Public listing platforms** — Zillow, Redfin, and other aggregators that track asking prices and market trends
+- **Tax assessor databases** — Property characteristics (size, bed/bath count, lot details) for accurate per-sqft normalization
+
+### Data weighting
+
+Raw data points are weighted by:
+- **Recency** — Sales from the past 90 days carry more weight than older comps
+- **Geographic proximity** — Transactions within the target neighborhood receive higher relevance scores
+- **Transaction volume** — Markets with frequent turnover produce more stable price signals
+- **Property type** — Single-family, condo, and townhome sales are filtered and weighted differently based on market composition
 
 ## Price updates
 
-Oracle prices update on a regular cadence. You'll see price charts reflecting these updates in real time on the exchange.
+Oracle prices update **every 24 hours** at 00:00 UTC. The update cycle:
+
+1. **Data ingestion** (00:00-02:00 UTC) — New sales and listings from the past 24 hours are pulled and validated
+2. **Model computation** (02:00-03:00 UTC) — Weighted regression models compute updated \$/sqft values for each market
+3. **Anomaly detection** (03:00-04:00 UTC) — Outlier checks run to flag unusual price movements
+4. **On-chain publication** (04:00 UTC) — Validated prices are written to the oracle contract on Base
+
+You'll see updated prices reflected in the exchange UI after 04:00 UTC each day.
 
 ## Market halts
 
-If the oracle detects an anomaly, such as a sudden price spike that falls outside expected parameters, the market may automatically halt to protect investors. Halts will be displayed in the exchange UI and we may send notifications depending on your account notification settings.
+If the oracle detects an anomaly — such as a **single-day price change exceeding ±10%** — the market may automatically halt to protect investors. Common triggers include:
 
-Markets resume once the anomaly is investigated and resolved.
+- Data pipeline errors (missing or corrupted feed data)
+- Flash crash events in underlying housing markets
+- Coordinated listing manipulation (rare but monitored)
+
+When a halt occurs:
+- The exchange UI will display a **"Market Paused"** banner
+- Open orders remain in the order book but cannot execute
+- You may receive a notification depending on your account settings
+- Shareland's data team investigates and publishes a resolution timeline
+
+Markets resume once the anomaly is investigated and resolved, typically within 24-48 hours.
 
 ## Oracle vs. Market Price
 
-The **Oracle Price** represents the true underlying value of the real estate per square foot.
+The **Oracle Price** represents the true underlying value of the real estate per square foot based on transaction data. The **Market Price** is what buyers and sellers are currently trading at on the Shareland exchange.
 
-*   **Debt Calculation:** Your debt position (collateralization ratio) is always calculated using the Oracle Price, not the secondary market trading price.
-*   **Liquidation:** Liquidations are triggered ONLY if the Oracle Price moves significantly enough to drop your ratio below 110%. Exchange market volatility does not trigger liquidation.
+Key differences:
+
+| | Oracle Price | Market Price |
+|---|---|---|
+| **Updated** | Daily (04:00 UTC) | Real-time (continuous) |
+| **Source** | Real estate transaction data | Supply/demand on Shareland |
+| **Used for** | Debt ratios, liquidations | Trading, order execution |
+| **Volatility** | Low (daily changes ~0.5-2%) | Higher (intraday swings possible) |
+
+### Why this matters for collateralized positions
+
+*   **Debt Calculation:** Your debt position (collateralization ratio) is always calculated using the **Oracle Price**, not the secondary market trading price.
+*   **Liquidation:** Liquidations are triggered ONLY if the **Oracle Price** moves significantly enough to drop your ratio below 110%. Exchange market volatility (Market Price swings) does **not** trigger liquidation.
+
+This protects you from short-term market manipulation or liquidity crunches on the exchange itself.
 
 ## Methodology
 
-Shareland's oracle methodology was developed in collaboration with Dr. Susan Wachter (Wharton School) and Dr. Andrey Pavlov (Simon Fraser University). The approach uses academically validated models for neighborhood-level real estate pricing.
+Shareland's oracle methodology was developed in collaboration with **Dr. Susan Wachter** (Wharton School of Business) and **Dr. Andrey Pavlov** (Simon Fraser University). The approach uses academically validated regression models for neighborhood-level real estate pricing, adapted from peer-reviewed research on housing price indices.
+
+The core model is a **repeat-sales index** similar to the Case-Shiller methodology, but enhanced with:
+- Geographic clustering algorithms to define micro-market boundaries
+- Hedonic regression adjustments for property characteristics (sqft, bed/bath, lot size)
+- Time-weighted smoothing to reduce noise from sparse transaction data
+
+### On-chain verification
+
+Oracle prices are published to two contracts on **Base mainnet**:
+
+- **DecentralizedOracle** — `0x6b0523C666582513CAd89E3F653854EF650E0e2C` ([BaseScan](https://basescan.org/address/0x6b0523C666582513CAd89E3F653854EF650E0e2C))
+- **SimpleOracle** — `0x37C408c0F1752e33ed169cEe6B5B881551Ad64Ea` ([BaseScan](https://basescan.org/address/0x37C408c0F1752e33ed169cEe6B5B881551Ad64Ea))
+
+You can verify any published price directly on-chain at any time.
 
 <Note>
-  A full methodology document is available for investors who want to understand the pricing model in depth. Contact the team to request access.
+  A full methodology document with model specifications and backtesting results is available for investors. Contact the team at [team@share.land](mailto:team@share.land) to request access.
 </Note>
