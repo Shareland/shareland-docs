@@ -1,0 +1,474 @@
+---
+title: Trading Guide for AI Agents
+description: Complete instructions for programmatic SQFT token trading on the Shareland exchange — contract addresses, function signatures, code examples.
+---
+
+Shareland is a tokenized real estate exchange on **Base** (Ethereum L2). Users trade **SQFT tokens** — synthetic assets that track the $/sqft price of residential real estate in specific neighborhoods and cities. All trading happens on-chain through an AMM (automated market maker) with USDC as the settlement currency.
+
+This guide provides everything an AI agent or trading bot needs to execute trades programmatically.
+
+## Network & Chain
+
+| Parameter | Mainnet | Testnet |
+|-----------|---------|---------|
+| Chain | Base | Base Sepolia |
+| Chain ID | `8453` | `84532` |
+| RPC | `https://mainnet.base.org` | `https://sepolia.base.org` |
+| Block explorer | [basescan.org](https://basescan.org) | [sepolia.basescan.org](https://sepolia.basescan.org) |
+
+## Token Details
+
+| Token | Decimals | Mainnet Address |
+|-------|----------|-----------------|
+| USDC (settlement currency) | 6 | `0x833589fcd6edb6e08f4c7c32d4f71b54bda02913` |
+| SQFT tokens (per-market) | 6 | Varies per market (see [Discovering Markets](#discovering-markets)) |
+
+Both USDC and SQFT tokens use **6 decimals**. To convert a human-readable amount to on-chain units, multiply by `1e6`. For example, $100 USDC = `100000000` (100 × 10^6).
+
+## Core Contract Addresses (Mainnet)
+
+These are **beacon addresses** — the shared implementation layer. Each market has its own proxy contracts that point to these beacons.
+
+| Contract | Address |
+|----------|---------|
+| ShareLandMarket (beacon) | `0x6E43100ad67C1e5FcFE86f764C309D0fc09b63D7` |
+| ShareLandToken (beacon) | `0xEe5FB96a1632820a1F2b8FAf29f203829D3d7CE2` |
+| OrderBook (beacon) | `0x6A4fB77BAc500893E9A753dE32DcEA0E939D30B0` |
+| CollateralPosition (beacon) | `0x8604455F37C96A86B1069B409b88E9b3fc2e3c36` |
+| MarketFormula | `0x697631c4fda4B984c6E350f2b0716a8a100C7693` |
+| MarketDeployer | `0xb44305543e4d370DaC0A027d791b467DC8CF0e2f` |
+
+<Warning>
+You **do not** interact with the beacon addresses directly. Each market has its own proxy addresses. Use the API (below) to get the correct proxy address for the market you want to trade.
+</Warning>
+
+## Discovering Markets
+
+Call the public API to get all available markets and their per-market contract addresses.
+
+**No authentication required.**
+
+```bash
+# Mainnet
+curl -s https://dropym7xnur1f.cloudfront.net/lands | jq '.data.landBuskets'
+
+# Testnet
+curl -s https://d1v6qjbkcqbflx.cloudfront.net/lands | jq '.data.landBuskets'
+```
+
+Each market in the response includes a `contractAddresses` object with the proxy addresses you need:
+
+```json
+{
+  "tokenSymbol": "SFO",
+  "name": "San Francisco",
+  "contractAddresses": {
+    "market": "0x...",
+    "shareLandToken": "0x...",
+    "stableToken": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913",
+    "collateralPosition": "0x...",
+    "orderBook": "0x...",
+    "liquidityProviderToken": "0x...",
+    "simpleOracle": "0x...",
+    "decentralizedOracle": "0x..."
+  },
+  "marketInfo": {
+    "marketPrice": 1300000000,
+    "oraclePrice": 1295000000,
+    "totalSupply": 50000000000,
+    "paused": false
+  }
+}
+```
+
+Key fields:
+- **`contractAddresses.market`** — the ShareLandMarket proxy you call `purchase()` and `sell()` on
+- **`contractAddresses.shareLandToken`** — the ERC-20 SQFT token for this market
+- **`contractAddresses.stableToken`** — USDC address
+- **`marketInfo.marketPrice`** — current price in USDC (6 decimals). Divide by `1e6` for human-readable $/sqft
+- **`marketInfo.paused`** — if `true`, the market is halted and trades will revert
+
+### Global Market Data
+
+```bash
+curl -s https://dropym7xnur1f.cloudfront.net/market-data | jq '.data'
+```
+
+Returns aggregate volume, market cap, TVL, and transaction counts.
+
+## How to Buy SQFT Tokens
+
+Trading on Shareland is a two-step process: **approve** USDC spending, then **call purchase**.
+
+### Step 1: Approve USDC
+
+Before buying, you must approve the market contract to spend your USDC. Approve at least the amount you want to spend plus the 1.5% transaction fee.
+
+```solidity
+// On the USDC contract (ERC-20 standard)
+function approve(address spender, uint256 amount) external returns (bool)
+```
+
+- `spender` = the market's proxy address (`contractAddresses.market`)
+- `amount` = USDC amount to spend including fees. To be safe, approve `usdcAmount * 10150 / 10000` or simply a large amount.
+
+### Step 2: Purchase
+
+The simplest entry point — specify how much USDC to spend:
+
+```solidity
+function purchase(uint256 stableTokenAmount) external
+```
+
+- `stableTokenAmount` — USDC amount to spend (6 decimals). For example, `100000000` = $100 USDC.
+- The contract calculates how many SQFT tokens you receive based on the AMM bonding curve.
+- A 1.5% transaction fee is charged on top (deducted from your approved USDC).
+
+**With slippage protection** (recommended for production bots):
+
+```solidity
+function purchaseWithMinReceived(
+    uint256 stableTokenAmount,
+    uint256 minReceivedLandTokenAmount
+) public
+```
+
+- `minReceivedLandTokenAmount` — minimum SQFT tokens you're willing to accept. If the AMM would give you fewer, the transaction reverts.
+
+**By token amount** (specify how many SQFT tokens you want):
+
+```solidity
+function purchaseLandToken(uint256 landTokenAmount) public
+```
+
+- `landTokenAmount` — exact number of SQFT tokens to buy (6 decimals).
+- The contract calculates the USDC cost. You must have approved enough USDC (cost + fees).
+
+### Events
+
+A successful purchase emits:
+
+```solidity
+event MarketTransaction(
+    address indexed account,
+    uint256 landTokenAmount,
+    uint256 stableTokenAmount,
+    uint256 transactionFees,
+    TransactionType transactionType  // TransactionType.Purchase
+);
+```
+
+## How to Sell SQFT Tokens
+
+No approval needed — the market contract has the `TRANSFER_ROLE` on the SQFT token and will transfer tokens from your wallet directly.
+
+```solidity
+function sell(uint256 landTokenAmount) external
+```
+
+- `landTokenAmount` — SQFT tokens to sell (6 decimals).
+- You receive USDC minus the 1.5% transaction fee.
+
+**With slippage protection:**
+
+```solidity
+function sellWithMinReceived(
+    uint256 landTokenAmount,
+    uint256 minReceivedStableTokenAmount
+) public
+```
+
+- `minReceivedStableTokenAmount` — minimum USDC you're willing to accept. Reverts if you'd receive less.
+
+## Transaction Fees
+
+A **1.5% fee** is charged on every trade (buy and sell), denominated in USDC.
+
+- **Buy:** You pay `usdcCost + fee`. Fee = `usdcCost × 150 / 10000`.
+- **Sell:** You receive `usdcProceeds - fee`. Fee = `usdcProceeds × 150 / 10000`.
+- A minimum fee may apply (currently 0).
+- Fees go to the market's liquidity providers.
+
+## Trade Limits
+
+Markets may enforce per-wallet trade limits within rolling time epochs. Limits are configurable per market and may change over time.
+
+- **Epoch period:** a fixed time window (e.g., 24 hours)
+- **Purchase limit:** max USDC spent per epoch
+- **Sell limit:** max USDC received per epoch
+- Limits are tracked as a **net** amount (purchases minus sells)
+
+If limits are set to 0, there are no restrictions. If your trade would exceed the limit, the transaction reverts with an error.
+
+You can query limits by reading the market contract's public storage, but in practice, start with small trades to determine the current limits.
+
+## ABI for Trading
+
+Minimal ABI needed for trading (JSON format):
+
+```json
+[
+  {
+    "name": "purchase",
+    "type": "function",
+    "stateMutability": "nonpayable",
+    "inputs": [{ "name": "stableTokenAmount", "type": "uint256" }],
+    "outputs": []
+  },
+  {
+    "name": "purchaseWithMinReceived",
+    "type": "function",
+    "stateMutability": "nonpayable",
+    "inputs": [
+      { "name": "stableTokenAmount", "type": "uint256" },
+      { "name": "minReceivedLandTokenAmount", "type": "uint256" }
+    ],
+    "outputs": []
+  },
+  {
+    "name": "purchaseLandToken",
+    "type": "function",
+    "stateMutability": "nonpayable",
+    "inputs": [{ "name": "landTokenAmount", "type": "uint256" }],
+    "outputs": []
+  },
+  {
+    "name": "sell",
+    "type": "function",
+    "stateMutability": "nonpayable",
+    "inputs": [{ "name": "landTokenAmount", "type": "uint256" }],
+    "outputs": []
+  },
+  {
+    "name": "sellWithMinReceived",
+    "type": "function",
+    "stateMutability": "nonpayable",
+    "inputs": [
+      { "name": "landTokenAmount", "type": "uint256" },
+      { "name": "minReceivedStableTokenAmount", "type": "uint256" }
+    ],
+    "outputs": []
+  }
+]
+```
+
+Standard ERC-20 ABI for USDC approval and balance checks:
+
+```json
+[
+  {
+    "name": "approve",
+    "type": "function",
+    "stateMutability": "nonpayable",
+    "inputs": [
+      { "name": "spender", "type": "address" },
+      { "name": "amount", "type": "uint256" }
+    ],
+    "outputs": [{ "name": "", "type": "bool" }]
+  },
+  {
+    "name": "balanceOf",
+    "type": "function",
+    "stateMutability": "view",
+    "inputs": [{ "name": "account", "type": "address" }],
+    "outputs": [{ "name": "", "type": "uint256" }]
+  },
+  {
+    "name": "allowance",
+    "type": "function",
+    "stateMutability": "view",
+    "inputs": [
+      { "name": "owner", "type": "address" },
+      { "name": "spender", "type": "address" }
+    ],
+    "outputs": [{ "name": "", "type": "uint256" }]
+  }
+]
+```
+
+## Code Examples
+
+### Using viem (recommended)
+
+```typescript
+import { createPublicClient, createWalletClient, http, parseUnits, formatUnits } from "viem";
+import { base } from "viem/chains";
+import { privateKeyToAccount } from "viem/accounts";
+
+const USDC_ADDRESS = "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913";
+const MARKET_ADDRESS = "0x..."; // Per-market proxy from API
+
+const account = privateKeyToAccount("0xYOUR_PRIVATE_KEY");
+
+const publicClient = createPublicClient({
+  chain: base,
+  transport: http("https://mainnet.base.org"),
+});
+
+const walletClient = createWalletClient({
+  account,
+  chain: base,
+  transport: http("https://mainnet.base.org"),
+});
+
+const erc20Abi = [
+  {
+    name: "approve",
+    type: "function",
+    stateMutability: "nonpayable",
+    inputs: [
+      { name: "spender", type: "address" },
+      { name: "amount", type: "uint256" },
+    ],
+    outputs: [{ name: "", type: "bool" }],
+  },
+  {
+    name: "balanceOf",
+    type: "function",
+    stateMutability: "view",
+    inputs: [{ name: "account", type: "address" }],
+    outputs: [{ name: "", type: "uint256" }],
+  },
+] as const;
+
+const marketAbi = [
+  {
+    name: "purchase",
+    type: "function",
+    stateMutability: "nonpayable",
+    inputs: [{ name: "stableTokenAmount", type: "uint256" }],
+    outputs: [],
+  },
+  {
+    name: "sell",
+    type: "function",
+    stateMutability: "nonpayable",
+    inputs: [{ name: "landTokenAmount", type: "uint256" }],
+    outputs: [],
+  },
+] as const;
+
+// Buy $100 worth of SQFT tokens
+async function buyTokens() {
+  const usdcAmount = parseUnits("100", 6); // $100 USDC
+  const approveAmount = (usdcAmount * 10150n) / 10000n; // +1.5% buffer for fees
+
+  // Step 1: Approve USDC
+  await walletClient.writeContract({
+    address: USDC_ADDRESS,
+    abi: erc20Abi,
+    functionName: "approve",
+    args: [MARKET_ADDRESS, approveAmount],
+  });
+
+  // Step 2: Purchase
+  const hash = await walletClient.writeContract({
+    address: MARKET_ADDRESS,
+    abi: marketAbi,
+    functionName: "purchase",
+    args: [usdcAmount],
+  });
+
+  const receipt = await publicClient.waitForTransactionReceipt({ hash });
+  console.log("Purchase confirmed:", receipt.transactionHash);
+}
+
+// Sell 50 SQFT tokens
+async function sellTokens() {
+  const tokenAmount = parseUnits("50", 6); // 50 SQFT tokens
+
+  const hash = await walletClient.writeContract({
+    address: MARKET_ADDRESS,
+    abi: marketAbi,
+    functionName: "sell",
+    args: [tokenAmount],
+  });
+
+  const receipt = await publicClient.waitForTransactionReceipt({ hash });
+  console.log("Sell confirmed:", receipt.transactionHash);
+}
+```
+
+### Using ethers.js
+
+```typescript
+import { ethers } from "ethers";
+
+const USDC_ADDRESS = "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913";
+const MARKET_ADDRESS = "0x..."; // Per-market proxy from API
+
+const provider = new ethers.JsonRpcProvider("https://mainnet.base.org");
+const wallet = new ethers.Wallet("YOUR_PRIVATE_KEY", provider);
+
+const erc20Abi = [
+  "function approve(address spender, uint256 amount) returns (bool)",
+  "function balanceOf(address account) view returns (uint256)",
+];
+
+const marketAbi = [
+  "function purchase(uint256 stableTokenAmount)",
+  "function sell(uint256 landTokenAmount)",
+];
+
+const usdc = new ethers.Contract(USDC_ADDRESS, erc20Abi, wallet);
+const market = new ethers.Contract(MARKET_ADDRESS, marketAbi, wallet);
+
+// Buy $100 worth of SQFT tokens
+async function buyTokens() {
+  const usdcAmount = ethers.parseUnits("100", 6);
+  const approveAmount = (usdcAmount * 10150n) / 10000n;
+
+  const approveTx = await usdc.approve(MARKET_ADDRESS, approveAmount);
+  await approveTx.wait();
+
+  const purchaseTx = await market.purchase(usdcAmount);
+  const receipt = await purchaseTx.wait();
+  console.log("Purchase confirmed:", receipt.hash);
+}
+
+// Sell 50 SQFT tokens
+async function sellTokens() {
+  const tokenAmount = ethers.parseUnits("50", 6);
+
+  const sellTx = await market.sell(tokenAmount);
+  const receipt = await sellTx.wait();
+  console.log("Sell confirmed:", receipt.hash);
+}
+```
+
+## Common Mistakes
+
+<Warning>
+
+**Do NOT use `CollateralPosition` for spot trading.** The `CollateralPosition` contract (`openCollateralPosition`, `closeCollateralPosition`) is for **borrowing/minting** — it creates leveraged collateralized debt positions, not spot trades. If you want to simply buy or sell SQFT tokens, use `ShareLandMarket.purchase()` and `ShareLandMarket.sell()`.
+
+</Warning>
+
+| Mistake | What happens | Fix |
+|---------|-------------|-----|
+| Calling the beacon address instead of the market proxy | Transaction fails or interacts with wrong contract | Use `contractAddresses.market` from the API for each specific market |
+| Insufficient USDC approval | Transaction reverts | Approve at least `amount × 1.015` to cover fees |
+| Wrong decimals | Wildly incorrect amounts | Both USDC and SQFT use 6 decimals |
+| Trading on a paused market | Transaction reverts | Check `marketInfo.paused` via the API first |
+| Using `CollateralPosition` for spot trades | Creates a leveraged debt position, not a trade | Use `ShareLandMarket.purchase()` / `sell()` |
+
+## Advanced: Collateral Positions (Borrowing/Minting)
+
+<Note>
+This section is for advanced agents only. Most trading bots should use `purchase()` and `sell()` above.
+</Note>
+
+The `CollateralPosition` contract allows users to **mint** new SQFT tokens by locking USDC collateral, and **burn** them to reclaim collateral. This is a leveraged mechanism similar to a CDP (Collateralized Debt Position) in DeFi.
+
+- `openCollateralPosition(uint256 stableTokenAmount)` — lock USDC, mint SQFT tokens
+- `closeCollateralPosition()` — burn minted tokens, reclaim collateral
+- `adjustCollateralPosition(uint256 stableTokenAmount, bool isIncrease)` — modify position size
+
+These functions are gated by the `actionAllowed` modifier, which checks `MarketFormula.isVerificationRequiredForCDP` and `MarketFormula.isWhiteListed(msg.sender)`. If CDP verification is required and your address is not whitelisted, these calls will revert.
+
+## Full Reference
+
+- [Contract Addresses](/reference/contract-addresses) — all verified contract addresses on Base mainnet
+- [What are SQFT Tokens?](/guides/what-are-sqft-tokens) — how SQFT pricing and the oracle peg work
+- [How It Works](/guides/how-it-works) — fees, trade limits, and market hours
+- [FAQ](/reference/faq)
