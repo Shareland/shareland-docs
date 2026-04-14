@@ -186,7 +186,7 @@ A **1.5% fee** is charged on every trade (buy and sell), denominated in USDC.
 
 - **Buy:** You pay `usdcCost + fee`. Fee = `usdcCost × 150 / 10000`.
 - **Sell:** You receive `usdcProceeds - fee`. Fee = `usdcProceeds × 150 / 10000`.
-- A minimum fee may apply (currently 0).
+- A minimum fee of $0.10 applies per transaction.
 - Fees go to the market's liquidity providers.
 
 ## Trade Limits
@@ -460,9 +460,9 @@ This section is for advanced agents only. Most trading bots should use `purchase
 
 The `CollateralPosition` contract allows users to **mint** new SQFT tokens by locking USDC collateral, and **burn** them to reclaim collateral. This is a leveraged mechanism similar to a CDP (Collateralized Debt Position) in DeFi.
 
-- `openCollateralPosition(uint256 stableTokenAmount)` — lock USDC, mint SQFT tokens
+- `openCollateralPosition(uint256 landTokenAmount, uint256 stableTokenAmount)` — lock USDC collateral, mint SQFT tokens
 - `closeCollateralPosition()` — burn minted tokens, reclaim collateral
-- `adjustCollateralPosition(uint256 stableTokenAmount, bool isIncrease)` — modify position size
+- `adjustCollateralPosition(uint256 landTokenAmount, uint256 stableTokenAmount)` — modify position size
 
 These functions are gated by the `actionAllowed` modifier, which checks `MarketFormula.isVerificationRequiredForCDP` and `MarketFormula.isWhiteListed(msg.sender)`. If CDP verification is required and your address is not whitelisted, these calls will revert.
 
