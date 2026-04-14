@@ -31,12 +31,26 @@ Click any market card to open the detail panel on the right. You'll see:
 
 Click **Trade** in the market action panel to open the buy/sell interface.
 
-## Step 4: Enter your amount
+## Step 4: Choose order type
 
-Select the **Buy** tab. Enter the USDC amount you want to trade. The interface shows you:
+The trade panel has two tabs: **Market** and **Limit**.
+
+### Market order (default)
+
+Select the **Buy** tab under **Market**. Enter the USDC amount you want to trade. The interface shows you:
 - Number of SQFT tokens you'll receive
 - 1.5% transaction fee
 - Total cost
+
+Market orders execute immediately at the current AMM price.
+
+### Limit order
+
+Select the **Limit** tab to set a specific price. Enter:
+- **Price** — the maximum $/sqft you're willing to pay
+- **Amount** — USDC to spend or SQFT tokens to buy
+
+Your order sits in the order book until the market reaches your price. You can view and cancel open orders from the **Orders** tab.
 
 There is no minimum trade size. A minimum fee of \$0.10 applies per transaction.
 
@@ -46,7 +60,7 @@ There is no minimum trade size. A minimum fee of \$0.10 applies per transaction.
 
 ## Step 5: Confirm
 
-Review the details and confirm. The transaction settles on-chain in seconds. Your position appears in your portfolio immediately.
+Review the details and confirm. Market orders settle on-chain in seconds. Limit orders remain open until filled or cancelled. Your position appears in your portfolio immediately after execution.
 
 <Check>
   Your new position is visible instantly in the Portfolio tab.

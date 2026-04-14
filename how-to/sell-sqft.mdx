@@ -14,9 +14,21 @@ You can open the sell panel two ways:
   <img src="/images/screenshots/portfolio.png" alt="Portfolio assets tab" />
 </Frame>
 
-## Step 2: Open the Sell tab
+## Step 2: Choose order type
 
-In the action panel, select the **Sell** tab. Enter the amount to close, either a specific number of tokens or a USDC value. Partial exits are fully supported.
+The sell panel has two tabs: **Market** and **Limit**.
+
+### Market order (default)
+
+Select the **Sell** tab under **Market**. Enter the amount to close, either a specific number of tokens or a USDC value. Partial exits are fully supported. Market orders execute immediately at the current AMM price.
+
+### Limit order
+
+Select the **Limit** tab to set a specific price. Enter:
+- **Price** — the minimum $/sqft you're willing to accept
+- **Amount** — number of SQFT tokens to sell
+
+Your order sits in the order book until the market reaches your price. You can view and cancel open orders from the **Orders** tab.
 
 <Frame caption="Shareland: Sell trade panel">
   <img src="/images/screenshots/trade-sell.png" alt="Trade panel: sell" />
@@ -24,7 +36,7 @@ In the action panel, select the **Sell** tab. Enter the amount to close, either 
 
 ## Step 3: Confirm
 
-Review the transaction details, including the 1.5% fee, and confirm. Funds return to your connected wallet immediately after the transaction confirms on-chain.
+Review the transaction details, including the 1.5% fee, and confirm. Market orders settle immediately. Limit orders remain open until filled or cancelled. Funds return to your connected wallet after the transaction confirms on-chain.
 
 <Note>
   You can sell any portion of a position. You don't have to exit all at once.

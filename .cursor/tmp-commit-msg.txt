@@ -1,0 +1,9 @@
+fix: docs pass — AMM language, limit orders, disclaimers, stale dates
+
+- Correct "order book" to "AMM with limit order support" across
+  what-are-sqft-tokens, faq, and glossary
+- Add limit order documentation to buy-sqft and sell-sqft pages
+- Add regulatory disclaimer to tycoon.mdx
+- Add "as of Q1 2026" to competitor comparison and Season 2 copy
+- Replace "coming soon" login language with "on the roadmap"
+- Fix staking descriptions to reflect two-sided liquidity (FAQ, glossary)
