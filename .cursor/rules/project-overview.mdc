@@ -16,7 +16,7 @@ Shareland is a tokenized real estate exchange platform. Users can buy, sell, and
 
 ## Repository Structure
 
-Nine active repositories live in this workspace. Every one has a **deployment tier** (defined in `ticket-management.mdc`) which determines how work ships and which project-board columns apply. Read the tier before assuming anything about releases or testnet.
+Eight active repositories live in this workspace. Every one has a **deployment tier** (defined in `ticket-management.mdc`) which determines how work ships and which project-board columns apply. Read the tier before assuming anything about releases or testnet.
 
 | Repo | Purpose | How it deploys | Tier |
 |---|---|---|---|
@@ -28,7 +28,10 @@ Nine active repositories live in this workspace. Every one has a **deployment ti
 | `shareland-docs` | Public docs (docs.share.land) | Mintlify auto-deploys on merge to `main` | B |
 | `shareland-mission-control` | Internal ops and KPI dashboard | Vercel auto-deploys on merge to `main` | B |
 | `shareland-prototypes` | Agentic prototyping sandbox | Vercel auto-deploys on merge to `main` | B |
-| `shareland-cities-lp` | Deprecated cities landing page | Not deployed | — |
+
+`shareland-cities-lp` is also checked out in the workspace but is **archived on GitHub** and read-only. Do not open issues or PRs against it.
+
+Note that `shareland-daemons` uses **`master`** as its default branch. Every other repo uses `main`.
 
 **Only the exchange stack** — react, api, contracts, daemons — has a testnet (Base Sepolia, testnet.share.land). Tier B repos have no testnet and no releases: the merge *is* the deploy.
 
@@ -177,7 +180,7 @@ These 5 rules exist in `shareland-react`, `shareland-api`, `shareland-contracts`
 - `ticket-management.mdc` — Deployment tiers, GitHub Issues, project board field IDs, status/priority/size options
 - `shell-environment.mdc` — Windows/PowerShell compatibility
 
-`shareland-cities-lp` is deprecated and deliberately excluded.
+`shareland-cities-lp` is archived and deliberately excluded.
 
 ### Repo-specific rules
 - `frontend-conventions.mdc` — Only in `shareland-react`
