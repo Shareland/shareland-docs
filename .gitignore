@@ -1,0 +1,7 @@
+
+# Claude Code local state (worktrees are full checkouts with their own node_modules)
+.claude/worktrees/
+.claude/launch.json
+
+# Agent scratch files - write these to a system temp dir, not the repo
+.cursor/tmp-*
