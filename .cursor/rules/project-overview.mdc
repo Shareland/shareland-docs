@@ -16,24 +16,24 @@ Shareland is a tokenized real estate exchange platform. Users can buy, sell, and
 
 ## Repository Structure
 
-Eight active repositories live in this workspace. Every one has a **deployment tier** (defined in `ticket-management.mdc`) which determines how work ships and which project-board columns apply. Read the tier before assuming anything about releases or testnet.
+Eight active repositories live in this workspace. Each belongs to one of three **ticket flows** (defined in `ticket-management.mdc`) which decide how work ships and which project-board columns apply. Check the flow before assuming anything about releases or testnet.
 
-| Repo | Purpose | How it deploys | Tier |
+| Repo | Purpose | How it deploys | Flow |
 |---|---|---|---|
-| `shareland-react` | Exchange front-end (share.land) | GitHub Actions on GitHub Release: **prerelease → testnet, release → mainnet** | A |
-| `shareland-api` | REST API, Prisma/Postgres | Manual `workflow_dispatch` builds a Docker image to ECR; App Runner picks it up | A |
-| `shareland-contracts` | Solidity contracts on Base | Operator-run Hardhat scripts, no CI/CD trail | A |
-| `shareland-daemons` | Oracle, statistics, notification daemons | Manual `workflow_dispatch` to ECR then ECS | A |
-| `shareland-common` | Shared types, formulas, utilities | Published to GitHub Package Registry, then consumers bump | C |
-| `shareland-docs` | Public docs (docs.share.land) | Mintlify auto-deploys on merge to `main` | B |
-| `shareland-mission-control` | Internal ops and KPI dashboard | Vercel auto-deploys on merge to `main` | B |
-| `shareland-prototypes` | Agentic prototyping sandbox | Vercel auto-deploys on merge to `main` | B |
+| `shareland-react` | Exchange front-end (share.land) | GitHub Actions on GitHub Release: **prerelease → testnet, release → mainnet** | Exchange stack |
+| `shareland-api` | REST API, Prisma/Postgres | Manual `workflow_dispatch` builds a Docker image to ECR; App Runner picks it up | Exchange stack |
+| `shareland-contracts` | Solidity contracts on Base | Operator-run Hardhat scripts, no CI/CD trail | Exchange stack |
+| `shareland-daemons` | Oracle, statistics, notification daemons | Manual `workflow_dispatch` to ECR then ECS | Exchange stack |
+| `shareland-common` | Shared types, formulas, utilities | Published to GitHub Package Registry, then consumers bump | Deploy after merge |
+| `shareland-docs` | Public docs (docs.share.land) | Mintlify auto-deploys on merge to `main` | Deploy on merge |
+| `shareland-mission-control` | Internal ops and KPI dashboard | Vercel auto-deploys on merge to `main` | Deploy on merge |
+| `shareland-prototypes` | Agentic prototyping sandbox | Vercel auto-deploys on merge to `main` | Deploy on merge |
 
 `shareland-cities-lp` is also checked out in the workspace but is **archived on GitHub** and read-only. Do not open issues or PRs against it.
 
 Note that `shareland-daemons` uses **`master`** as its default branch. Every other repo uses `main`.
 
-**Only the exchange stack** — react, api, contracts, daemons — has a testnet (Base Sepolia, testnet.share.land). Tier B repos have no testnet and no releases: the merge *is* the deploy.
+**Only the exchange stack** — react, api, contracts, daemons — has a testnet (Base Sepolia, testnet.share.land). The deploy-on-merge repos have no testnet and no releases: the merge *is* the deploy.
 
 Also in the org but outside this workspace: `shareland-webapp` (the pre-split monorepo, kept for reference only), `dev-tools`, `open-graph-scraper`, `trading-view-charting`. Ten dead repos were archived in July 2026.
 
@@ -174,10 +174,10 @@ Rules and skills live **directly in each repo** under `.cursor/rules/` and `.cur
 ### Org-wide rules (synced to all eight active workspace repos)
 
 These 5 rules exist in `shareland-react`, `shareland-api`, `shareland-contracts`, `shareland-daemons`, `shareland-common`, `shareland-docs`, `shareland-mission-control` and `shareland-prototypes`:
-- `pr-workflow.mdc` — PR conventions, branch naming, per-repo checks, Tier A releases, `Relates to` (NOT `Closes`)
+- `pr-workflow.mdc` — PR conventions, branch naming, per-repo checks, exchange-stack releases, `Relates to` (NOT `Closes`)
 - `planning-workflow.mdc` — Plan before implementing multi-file changes
 - `project-overview.mdc` — This file
-- `ticket-management.mdc` — Deployment tiers, GitHub Issues, project board field IDs, status/priority/size options
+- `ticket-management.mdc` — Ticket flows, GitHub Issues, project board field IDs, status/priority/size options
 - `shell-environment.mdc` — Windows/PowerShell compatibility
 
 `shareland-cities-lp` is archived and deliberately excluded.
@@ -203,7 +203,7 @@ The workspace-root `.cursor/rules/` is the **editing surface**, but it is not un
 1. Edit the copy in the workspace root `.cursor/rules/`
 2. Run `.\scripts\sync-org-rules.ps1 -Check` to see which repos differ from it, compared against `origin/main` rather than whatever branch happens to be checked out
 3. Run `.\scripts\sync-org-rules.ps1 -Apply` to stage the change. It builds each commit in a throwaway worktree off `origin/main`, so it can never inject a rules chore into someone's open feature branch
-4. Push the branches it created and open one PR per repo (direct push to `main` is fine for the Tier B repos)
+4. Push the branches it created and open one PR per repo (direct push to `main` is fine for the deploy-on-merge repos)
 
 If you are in a single-repo window and cannot reach the workspace root, edit the rule in your repo, say so in the PR body, and ask for it to be propagated.
 

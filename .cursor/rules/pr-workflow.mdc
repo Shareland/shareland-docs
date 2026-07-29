@@ -75,13 +75,23 @@ Do NOT use `Closes #XX` or `Fixes #XX` — auto-close on merge is disabled at th
 - **Keep PRs focused**: One logical change per PR. Don't mix unrelated fixes.
 - **Target branch**: PRs should target `main` unless otherwise specified
 
+## Keeping the rules honest
+
+A rule that contradicts the code is worse than no rule, because it states something false with authority and agents believe it.
+
+- **If your change makes a rule wrong, fix the rule in the same PR.** Renaming a directory, changing a port, swapping a library or altering the deploy path all count. This is not optional cleanup; a stale rule is a bug you just introduced.
+- **If you notice a rule that is already wrong, fix it where you are.** Do not file it for later and do not work around it silently. Say so in the PR body so the reviewer sees the correction.
+- **Prefer enforcement over prose.** If a convention can be an ESLint rule, a type, or a CI check, make it one — that version cannot go stale. Rules files are for the things a reader cannot discover from the code: why a constraint exists, and which mistakes have already been made.
+
+Org-wide rules live in eight repos, so a fix in one repo does not reach the others. See `project-overview.mdc` for how to propagate.
+
 ## Release Workflow (Tag-Based)
 
-**This section applies to the exchange stack only** — `shareland-react`, `shareland-api`, `shareland-contracts`, `shareland-daemons` (Tier A in `ticket-management.mdc`). Those repos do not deploy on merge; a release or a manual deploy does.
+**This section applies to the exchange stack only** — `shareland-react`, `shareland-api`, `shareland-contracts`, `shareland-daemons` (see Ticket Flows in `ticket-management.mdc`). Those repos do not deploy on merge; a release or a manual deploy does.
 
 `shareland-mission-control`, `shareland-prototypes` and `shareland-docs` deploy automatically when a commit lands on `main` (Vercel / Mintlify). They cut **no tags and no releases** — do not create them there, and do not wait for one before treating the change as live. `shareland-common` publishes to the package registry instead; its version bump rides the consuming repo's release.
 
-For the Tier A repos, Shareland uses **release tags** (not release branches) to mark deployable versions. Tags follow semver: `v<major>.<minor>.<patch>`.
+For the exchange stack, Shareland uses **release tags** (not release branches) to mark deployable versions. Tags follow semver: `v<major>.<minor>.<patch>`.
 
 - **Major** (`v2.0.0`): Breaking changes or major platform milestones
 - **Minor** (`v1.1.0`): New features

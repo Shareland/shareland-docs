@@ -102,27 +102,27 @@ gh api repos/Shareland/<repo-name>/issues/$number --method PATCH -f type="Featur
 - **Infra, tooling, charting, OG scraping**: `shareland-infra`, `dev-tools`, `trading-view-charting`, `open-graph-scraper`
 - **Cross-repo features**: Create in the primary repo, mention others in the description
 
-## Deployment Tiers (which board columns apply)
+## Ticket Flows (which board columns apply)
 
-Shareland repos ship in four different ways, and **the tier determines which board columns are valid.** Applying the exchange release pipeline to an auto-deploy repo is the most common mistake.
+Repos ship in three different ways, and **the flow decides which board columns are valid.** Pushing a deploy-on-merge repo through the exchange release pipeline is the most common mistake.
 
-| Tier | Repos | Board path |
-|------|-------|------------|
-| **A — Release-deployed** | `shareland-react`, `shareland-api`, `shareland-contracts`, `shareland-daemons` | Full pipeline, including On Testnet |
-| **B — Continuous deploy** | `shareland-docs`, `shareland-mission-control`, `shareland-prototypes` | In Progress → In Review → Live - Verify → Closed |
-| **C — Published package** | `shareland-common` | Follows the consuming repo's release |
-| **D — No deploy** | `shareland-infra`, `dev-tools`, `open-graph-scraper`, `trading-view-charting` | Backlog → Up Next → In Progress → In Review → Merged → Closed |
+| Flow | Repos | Board path after In Review |
+|---|---|---|
+| **Exchange stack** | `shareland-react`, `shareland-api`, `shareland-contracts`, `shareland-daemons` | Merged → On Testnet → Live - Verify → Closed |
+| **Deploy on merge** | `shareland-docs`, `shareland-mission-control`, `shareland-prototypes` | Live - Verify → Closed |
+| **Deploy after merge** | `shareland-common`, `shareland-infra`, `dev-tools`, `open-graph-scraper`, `trading-view-charting` | Merged → Live - Verify → Closed |
 
-**Only the exchange stack has a testnet.** `shareland-react`, `shareland-api`, `shareland-contracts`, and `shareland-daemons` deploy to testnet (Base Sepolia, testnet.share.land) before mainnet. Tier B, C, and D repos have **no testnet** — never put their tickets in "On Testnet".
+**Only the exchange stack has a testnet.** Those four repos are the only ones that can change testnet (Base Sepolia, testnet.share.land), so **`On Testnet` belongs to them and to nothing else.**
 
-- **Tier A** — merging does not deploy; a release or a manual deploy does. Do not skip columns. PRs are conventional across the exchange stack, but only `shareland-contracts` enforces them via branch protection.
-- **Tier B** — merging *is* deploying: landing on `main` goes live immediately (Mintlify / Vercel). Skip **Merged** and **On Testnet**, and move straight to **Live - Verify**. PRs are recommended on `shareland-mission-control` and `shareland-prototypes` to avoid collisions when more than one person or agent is working in the repo; they are not enforced, and direct pushes are fine for solo or trivial changes.
-- **Tier C** (`shareland-common`) — no deploy. Merge → bump version and `npm publish` → bump `@shareland/shareland-common` in react and api. The ticket then rides the **consuming** repo's release and inherits its testnet/mainnet steps.
-- **Tier D** — stop at **Merged**, then close once verified in use.
+- **Exchange stack** — merging does not deploy. A release or a manual deploy does, which makes `Merged` a real and durable state. Skip `On Testnet` only when a change genuinely never touches testnet. PRs are conventional across the stack, but only `shareland-contracts` enforces them through branch protection.
+- **Deploy on merge** — the merge *is* the deploy: landing on `main` goes live at once via Vercel or Mintlify. `Merged` would last seconds, so do not use it; go straight to `Live - Verify`. **These three are the only deploy-on-merge repos.** PRs are recommended on `shareland-mission-control` and `shareland-prototypes` to avoid collisions when someone else may be working in the repo; they are not enforced, and direct pushes are fine for solo or trivial changes.
+- **Deploy after merge** — merging is not enough, but there is no testnet either. `shareland-common` publishes to the package registry and consumers bump the version; the tooling repos get applied or picked up in use. Park the ticket in `Merged` until that happens, then `Live - Verify`. If a repo ships nothing at all — `shareland-webapp` is kept only for reference — stop at `Merged` and close.
 
-### Repos outside the org-wide sync
+These three flows were previously called Tier A, B and C. If you meet that phrasing in an older doc or PR, it maps in the same order. There is no fourth tier.
 
-This file is copied to `shareland-react`, `shareland-api`, and `shareland-contracts` via `scripts/sync-org-rules.ps1` only. **Other repositories** (for example `shareland-mission-control`) do not receive that sync and may define their own `.cursor/rules/`. When working inside one of those repos, **follow that repository’s rules** if they conflict with this file.
+### Repo-owned rules win locally
+
+This file is synced to eight repos (listed in `project-overview.mdc`). Some of those repos also define their own `.cursor/rules/`. `shareland-mission-control` is the clearest case: it **closes issues at deploy** instead of after verification. Where a repo's own rule conflicts with this file, **follow the repo's rule** for work in that repo.
 
 ## Adding Issues to the Project Board
 
@@ -145,7 +145,7 @@ Size:        PVTSSF_lADOBiArKM4AsZ5azgjVccg
 | Up Next | `a808d070` | Planned for upcoming work |
 | In Progress | `b0d90514` | Actively being worked on |
 | In Review | `e4081d22` | Sign-off has happened; ready to merge. NOT simply "a PR exists" |
-| Merged | `708f0888` | PR merged, not yet deployed — **Tier A/D only** (see Deployment Tiers) |
+| Merged | `708f0888` | PR merged, not yet deployed. **Not for deploy-on-merge repos** (see Ticket Flows) |
 | On Testnet | `a9783abd` | Deployed to testnet, awaiting verification — **exchange stack only** |
 | Live - Verify | `707ea972` | Deployed to production, needs verification |
 
@@ -193,11 +193,11 @@ When implementing a fix or feature linked to an issue:
 3. **Move the issue** to "In Progress" when you start working on it.
 4. **Keep it in "In Progress"** while the PR is open and iterating (CI fixes, Bugbot suggestions, back-and-forth with the reviewer). Do NOT move to "In Review" just because a PR exists.
 5. **Move to "In Review"** only when a maintainer signs off — the project lead directly, or an agent the lead explicitly asked to review the PR. An agent approving its own work, or another agent's unprompted, does NOT count; leave it In Progress.
-6. **Move to "Merged"** when the PR is merged **in a Tier A or D repo**. In a Tier B repo the merge already deployed it — go straight to "Live - Verify". Other deployment statuses follow the release process.
+6. **Move to "Merged"** when the PR is merged, **unless the repo deploys on merge** — in `shareland-docs`, `shareland-mission-control` and `shareland-prototypes` the merge already put it live, so go straight to "Live - Verify". Later statuses follow the release process.
 
 ## Issue Lifecycle
 
-**Tier A (the exchange stack)** is the full flow:
+**The exchange stack** is the full flow:
 
 ```
 Backlog → Up Next → In Progress → In Review → Merged → On Testnet → Live - Verify → Closed
@@ -210,11 +210,10 @@ Backlog → Up Next → In Progress → In Review → Merged → On Testnet → 
 - **In Review** = a maintainer has approved the work; ready to merge
 - Issues are **only closed manually** after the fix/feature is verified on the target environment (testnet or mainnet). This ensures the board reflects what's actually live, not just what's been coded.
 
-**Other tiers (see Deployment Tiers):**
+**The other two flows (see Ticket Flows):**
 
-- **Tier B** (docs, mission-control, prototypes): `In Progress → In Review → Live - Verify → Closed`. No Merged, no On Testnet.
-- **Tier C** (`shareland-common`): merge, publish, bump consumers, then follow the consuming repo's release.
-- **Tier D** (infra, tooling): stop at Merged, then close once verified in use.
+- **Deploy on merge** (docs, mission-control, prototypes): `In Progress → In Review → Live - Verify → Closed`. No Merged, no On Testnet.
+- **Deploy after merge** (common, infra, tooling): `In Progress → In Review → Merged → Live - Verify → Closed`. No On Testnet.
 
 **Board columns lag reality.** Tickets are often not updated as work moves, so a column may be stale or appear to have skipped a stage. Do not infer deployment state from the column alone — check the actual release, deploy, or live URL, then correct the column.
 
@@ -222,11 +221,11 @@ Backlog → Up Next → In Progress → In Review → Merged → On Testnet → 
 
 When auditing the board ("take a PM pass"), cross-reference statuses with open PRs:
 
-- **Check the repo's tier first** (see Deployment Tiers) so you know which columns are even valid for that item.
+- **Check the repo's flow first** (see Ticket Flows) so you know which columns are even valid for that item.
 - **In Progress** means active work is happening, including open PRs iterating on feedback. Do not flag In Progress items for lacking a PR — that is the expected state.
 - **In Review** means a maintainer has approved the work. Flag any In Review item without sign-off.
-- **Merged** requires the PR to be merged, and only applies to Tier A/D. If a PR was merged but the issue is still In Review, move it to Merged.
-- **For Tier B repos, anything merged to `main` is already live** — it belongs in Live - Verify, not Merged.
+- **Merged** requires the PR to be merged, and does not apply to the deploy-on-merge repos. If a PR was merged but the issue is still In Review, move it to Merged.
+- **In a deploy-on-merge repo, anything on `main` is already live** — it belongs in Live - Verify, not Merged.
 - Check recently merged PRs and ensure their linked issues are moved to Merged (or On Testnet / Live - Verify if already deployed).
 - Remember that columns lag reality — verify against actual deploys before drawing conclusions.
 
