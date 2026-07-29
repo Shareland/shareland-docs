@@ -21,7 +21,7 @@ Eight active repositories live in this workspace. Each belongs to one of three *
 | Repo | Purpose | How it deploys | Flow |
 |---|---|---|---|
 | `shareland-react` | Exchange front-end (share.land) | GitHub Actions on GitHub Release: **prerelease → testnet, release → mainnet** | Exchange stack |
-| `shareland-api` | REST API, Prisma/Postgres | Manual `workflow_dispatch` builds a Docker image to ECR; App Runner picks it up | Exchange stack |
+| `shareland-api` | REST API, Prisma/Postgres | GitHub Release: **prerelease → staging, release → production**, building a Docker image to ECR. `workflow_dispatch` also available | Exchange stack |
 | `shareland-contracts` | Solidity contracts on Base | Operator-run Hardhat scripts, no CI/CD trail | Exchange stack |
 | `shareland-daemons` | Oracle, statistics, notification daemons | Manual `workflow_dispatch` to ECR then ECS | Exchange stack |
 | `shareland-common` | Shared types, formulas, utilities | Published to GitHub Package Registry, then consumers bump | Deploy after merge |
@@ -52,6 +52,7 @@ Also in the org but outside this workspace: `shareland-webapp` (the pre-split mo
 ### shareland-api (API)
 - **Tech**: Express.js, TypeScript, Prisma ORM, PostgreSQL
 - **Runtime**: Bun
+- **Deploy**: `api-build-docker.yml` on a full GitHub Release (production) and `api-staging-build-docker.yml` on a prerelease or draft (staging). Both also accept a manual `workflow_dispatch`.
 - **Auth**: Privy server-auth, Web3Auth signature verification
 - **Blockchain**: ethers.js, viem for contract interactions
 - **Services**: Sentry (error tracking), AWS S3, Resend (email), Google Sheets
