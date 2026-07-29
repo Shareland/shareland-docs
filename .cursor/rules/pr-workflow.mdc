@@ -1,0 +1,117 @@
+---
+description: Pull request creation and branch management workflow
+alwaysApply: true
+---
+
+# Pull Request Workflow
+
+## Branch Naming
+
+Use descriptive branch names with prefixes:
+- `fix/<description>` - Bug fixes
+- `feat/<description>` - New features
+- `refactor/<description>` - Code refactoring
+- `chore/<description>` - Maintenance, dependencies, config
+
+## Before Creating a PR
+
+Checks differ per repo. Run what the repo actually has — do not assume `npm run lint` exists.
+
+| Repo | Pre-push check |
+|---|---|
+| `shareland-react` | `npm run format` then `npm run lint` |
+| `shareland-api` | `bun run format` then `bun run lint` |
+| `shareland-contracts` | `bun run format` then `bun run lint` |
+| `shareland-daemons` | `bun run format` then `bun run lint` |
+| `shareland-common` | `bun run validate` (type-check + lint, no formatter) |
+| `shareland-mission-control` | `npm run build`, then `npm run test:verify` (data/KPI verification suite) |
+| `shareland-prototypes` | `npm run build` (no lint or formatter configured) |
+| `shareland-docs` | No build tooling. Check MDX renders and links resolve. |
+
+Always fix any lint/format errors before committing, and run the checks again before pushing. If you changed UI or routes in shareland-react, run Cypress before pushing (see the `pre-commit-checks` skill).
+
+## Creating a PR
+
+Use the GitHub CLI to create PRs. Write the PR body to a temp file first (PowerShell does not support heredocs):
+
+```powershell
+$body = @"
+## Summary
+<1-3 bullet points explaining what changed and why>
+
+## Changes
+- <Specific change 1>
+- <Specific change 2>
+
+## Testing
+- [ ] <How to verify this works>
+
+## Related Issues
+Relates to #<issue-number>
+"@
+[System.IO.File]::WriteAllText("$env:TEMP\pr-body.md", $body)
+gh pr create --repo Shareland/<repo-name> --title "<title>" --body-file "$env:TEMP\pr-body.md"
+Remove-Item "$env:TEMP\pr-body.md" -Force
+```
+
+## Git Push Policy
+
+**Do NOT run `git push` unless the user explicitly asks.** Agents should commit locally and report what was committed. The user decides when to push and create PRs. This prevents surprise remote state changes and gives the user control over what goes upstream.
+
+## Linking PRs to Issues
+
+When creating a PR that relates to a GitHub Issue:
+
+1. **In the PR body**: Include `Relates to #XX` or `Part of #XX` (text reference)
+2. **In the GitHub UI**: After the PR is created, link it via the **Development** sidebar on the issue page (or the PR page). This creates a formal tracked link in GitHub's system, separate from text mentions.
+
+Do NOT use `Closes #XX` or `Fixes #XX` — auto-close on merge is disabled at the repo level, but avoid these keywords anyway to keep intent clear.
+
+## PR Conventions
+
+- **Title**: Use the same prefix convention as branches (e.g., "fix: Correct USDC display on portfolio page")
+- **Always reference issues**: If there's a related GitHub Issue, include `Relates to #XX` or `Part of #XX` in the PR body and link via the Development sidebar
+- **After merge**: Move the related issue to "Merged" on the project board
+- **Keep PRs focused**: One logical change per PR. Don't mix unrelated fixes.
+- **Target branch**: PRs should target `main` unless otherwise specified
+
+## Release Workflow (Tag-Based)
+
+**This section applies to the exchange stack only** — `shareland-react`, `shareland-api`, `shareland-contracts`, `shareland-daemons` (Tier A in `ticket-management.mdc`). Those repos do not deploy on merge; a release or a manual deploy does.
+
+`shareland-mission-control`, `shareland-prototypes` and `shareland-docs` deploy automatically when a commit lands on `main` (Vercel / Mintlify). They cut **no tags and no releases** — do not create them there, and do not wait for one before treating the change as live. `shareland-common` publishes to the package registry instead; its version bump rides the consuming repo's release.
+
+For the Tier A repos, Shareland uses **release tags** (not release branches) to mark deployable versions. Tags follow semver: `v<major>.<minor>.<patch>`.
+
+- **Major** (`v2.0.0`): Breaking changes or major platform milestones
+- **Minor** (`v1.1.0`): New features
+- **Patch** (`v1.0.3`): Bug fixes
+
+### Creating a release
+
+1. Ensure `main` is up to date and the commits you want are merged
+2. Check existing tags to determine the next version: `gh release list --repo Shareland/<repo>`
+3. Create the release from `main`:
+
+```powershell
+$notes = @"
+## What's Changed (since vX.Y.Z)
+
+### Bug Fixes / Features
+- **<title>** (#<PR>) — <one-line description>
+
+**Full Changelog**: https://github.com/Shareland/<repo>/compare/vX.Y.Z...vX.Y.W
+"@
+[System.IO.File]::WriteAllText("$env:TEMP\release-notes.md", $notes)
+gh release create vX.Y.W --repo Shareland/<repo> --title "vX.Y.W" --notes-file "$env:TEMP\release-notes.md" --target main
+Remove-Item "$env:TEMP\release-notes.md" -Force
+```
+
+4. Deploy the tag to testnet, verify, then deploy to mainnet
+5. Move related issues to "On Testnet" then "Live - Verify" as deployments proceed
+
+### Notes
+
+- **No release branches**: We do not create `release/*` branches. Tags are sufficient.
+- **Hotfixes**: For urgent P0 fixes, merge the PR to `main`, tag immediately, and deploy. If `main` has diverged with unreviewed work, cherry-pick the fix commit onto a branch from the previous tag.
+- **Pre-release**: Use the `--prerelease` flag for tags deployed only to testnet (not yet on mainnet).

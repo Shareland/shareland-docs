@@ -1,0 +1,216 @@
+---
+description: Shareland Exchange project overview - tech stack, architecture, and conventions
+alwaysApply: true
+---
+
+# Shareland Exchange - Project Overview
+
+## What Is Shareland
+
+Shareland is a tokenized real estate exchange platform. Users can buy, sell, and trade fractional ownership of real estate properties represented as on-chain tokens. The platform includes:
+
+- A web-based trading interface (React frontend)
+- A REST API with real-time data processing (Express/Prisma backend)
+- Smart contracts for on-chain market mechanics (Solidity/Hardhat)
+- Public documentation site (Mintlify)
+
+## Repository Structure
+
+Nine active repositories live in this workspace. Every one has a **deployment tier** (defined in `ticket-management.mdc`) which determines how work ships and which project-board columns apply. Read the tier before assuming anything about releases or testnet.
+
+| Repo | Purpose | How it deploys | Tier |
+|---|---|---|---|
+| `shareland-react` | Exchange front-end (share.land) | GitHub Actions on GitHub Release: **prerelease → testnet, release → mainnet** | A |
+| `shareland-api` | REST API, Prisma/Postgres | Manual `workflow_dispatch` builds a Docker image to ECR; App Runner picks it up | A |
+| `shareland-contracts` | Solidity contracts on Base | Operator-run Hardhat scripts, no CI/CD trail | A |
+| `shareland-daemons` | Oracle, statistics, notification daemons | Manual `workflow_dispatch` to ECR then ECS | A |
+| `shareland-common` | Shared types, formulas, utilities | Published to GitHub Package Registry, then consumers bump | C |
+| `shareland-docs` | Public docs (docs.share.land) | Mintlify auto-deploys on merge to `main` | B |
+| `shareland-mission-control` | Internal ops and KPI dashboard | Vercel auto-deploys on merge to `main` | B |
+| `shareland-prototypes` | Agentic prototyping sandbox | Vercel auto-deploys on merge to `main` | B |
+| `shareland-cities-lp` | Deprecated cities landing page | Not deployed | — |
+
+**Only the exchange stack** — react, api, contracts, daemons — has a testnet (Base Sepolia, testnet.share.land). Tier B repos have no testnet and no releases: the merge *is* the deploy.
+
+Also in the org but outside this workspace: `shareland-webapp` (the pre-split monorepo, kept for reference only), `dev-tools`, `open-graph-scraper`, `trading-view-charting`. Ten dead repos were archived in July 2026.
+
+### shareland-react (Frontend)
+- **Tech**: React 18, TypeScript, Vite, Tailwind CSS, Radix UI
+- **Auth**: Privy (Web3Auth) with wagmi for wallet interactions
+- **State**: TanStack React Query for server state
+- **i18n**: i18next with 6 locales (en, zh-CN, de, es, fr, hi)
+- **Testing**: Cypress for e2e tests, Storybook for component dev
+- **Analytics**: Amplitude
+- **Maps**: Mapbox GL
+- **Charts**: Recharts, TradingView charting library
+- **Package manager**: npm
+- **Lint/Format**: ESLint + Prettier (run `npm run format` then `npm run lint`)
+
+### shareland-api (API)
+- **Tech**: Express.js, TypeScript, Prisma ORM, PostgreSQL
+- **Runtime**: Bun
+- **Auth**: Privy server-auth, Web3Auth signature verification
+- **Blockchain**: ethers.js, viem for contract interactions
+- **Services**: Sentry (error tracking), AWS S3, Resend (email), Google Sheets
+- **Daemons**: Statistics daemon, Oracle daemon, Database notifications daemon
+- **Package manager**: bun
+- **Lint/Format**: ESLint + Prettier (run `bun run format` then `bun run lint`)
+
+### shareland-contracts (Smart Contracts)
+- **Tech**: Solidity, Hardhat, OpenZeppelin (upgradeable contracts)
+- **Key contracts**: ShareLandMarket, ShareLandToken, OrderBook, LiquidityProviderToken, CollateralPosition
+- **Testing**: Hardhat test with Chai matchers
+- **Runtime**: Bun
+- **Networks**: Base mainnet, Base Sepolia (testnet)
+- **Lint/Format**: ESLint + Prettier + solhint (run `bun run format` then `bun run lint`)
+
+### shareland-docs (Documentation)
+- **Tech**: Mintlify, MDX
+- **URL**: https://docs.share.land
+- **Structure**: `guides/` (getting started), `how-to/` (user guides), `reference/` (FAQ, glossary, contracts)
+- **Config**: `docs.json` defines navigation, theme, and branding
+- **Deployment**: Mintlify auto-deploys on push to `main`
+- **Images**: `/images/screenshots/` for UI screenshots
+
+### shareland-common (Shared Library)
+- **Tech**: TypeScript, Rollup (bundler)
+- **Runtime**: Bun
+- **Exports**: Shared types, market formula JS implementations, utility functions
+- **Key exports**: `getLandPortfolioValue`, `MarketFormulaJS`, `decimalsMultiplier`, shared types
+- **Published as**: `@shareland/shareland-common` on GitHub Package Registry
+- **Depends on**: `@shareland/shareland-contracts`, `viem`, `decimal.js`, `ethers`
+- **Build**: `bun install && bun run build` (output in `dist/`)
+- **Lint/Format**: ESLint + Prettier (run `bun run validate`)
+
+### shareland-daemons (Background Workers)
+- **Tech**: TypeScript, Bun
+- **Workers**: Oracle price updater, statistics daemon, database notification daemon
+- **Deploy**: `daemon-deploy-ecr.yml` then `daemon-deploy-ecs.yml`, both manual `workflow_dispatch`
+- **Lint/Format**: `bun run format` then `bun run lint`
+- **Note**: Oracle and statistics work belongs here, **not** in `shareland-api`
+
+### shareland-mission-control (Internal Dashboard)
+- **Tech**: Next.js, TypeScript, npm
+- **Purpose**: Internal ops, KPI and goal-board dashboard. Not user-facing.
+- **Deploy**: Vercel, auto-deploys on merge to `main`
+- **Checks**: `npm run build`, then `npm run test:verify` (data and KPI verification suite)
+- **Note**: PRs are recommended to avoid collisions, not enforced. Has its own `.cursor/rules/` covering repo scope and its ticket flow.
+
+### shareland-prototypes (Sandbox)
+- **Tech**: Next.js, TypeScript, npm
+- **Purpose**: Agentic prototyping. Holds multiple independent prototypes side by side (e.g. gifting, exchange-redesign).
+- **Deploy**: Vercel, auto-deploys on merge to `main`
+- **Note**: Not production. PRs recommended when more than one person or agent is working in it.
+
+## Shared Dependencies
+
+- `@shareland/shareland-contracts` - NPM package consumed by frontend, API, and common
+- `@shareland/shareland-common` - Shared types, utilities, and formulas (e.g., `getLandPortfolioValue`, `MarketFormulaJS`)
+- Both frontend and API use `viem` for blockchain interactions
+- All `@shareland/*` packages are published to **GitHub Package Registry** (`https://npm.pkg.github.com`)
+
+### GitHub Packages Authentication
+
+All `@shareland/*` packages require auth to install. The registry and token are configured via `.npmrc`:
+
+```ini
+@shareland:registry=https://npm.pkg.github.com
+//npm.pkg.github.com/:_authToken=<GITHUB_PAT_WITH_READ_PACKAGES>
+```
+
+**Where this lives:**
+- **User-level** `~/.npmrc` (i.e., `C:\Users\<user>\.npmrc` on Windows, `~/.npmrc` on macOS) — applies globally to all repos
+- **Repo-level** `.npmrc` — some repos (e.g., `shareland-api`) also have a local copy
+
+**If `bun install` or `npm install` returns 401 for `@shareland/*`:**
+1. Check that `~/.npmrc` exists and contains the lines above
+2. If using **bun**, it may not read user-level `.npmrc` — copy `~/.npmrc` into the repo root (but do NOT commit the token; ensure `.gitignore` excludes `.npmrc`)
+3. If the token is expired, generate a new classic PAT at https://github.com/settings/tokens with `read:packages` scope
+
+### Working on shareland-common Locally
+
+The `shareland-common` repo lives at `shareland-exchange/shareland-common` in the workspace.
+
+**Build:**
+```bash
+cd shareland-common
+bun install   # requires GitHub Packages auth (see above)
+bun run build
+```
+
+**Test changes in shareland-react without publishing:**
+```bash
+# In shareland-react:
+npm run use-local-common   # switches dep to file:../shareland-common
+# ... test your changes ...
+npm run restore-common     # reverts to registry version before committing
+```
+
+**Publish a new version:**
+1. Bump version in `shareland-common/package.json`
+2. Build: `bun run build`
+3. Publish: `npm publish` (requires a PAT with `write:packages`)
+4. Bump `@shareland/shareland-common` version in `shareland-react/package.json` and `shareland-api/package.json`
+
+## Key Conventions
+
+- All repos use absolute imports (no relative paths in frontend; use `#/` prefix)
+- All repos enforce zero ESLint warnings (`--max-warnings 0`)
+- Frontend uses Tailwind CSS with mobile-first responsive design
+- API uses Prisma for all database access
+- Smart contracts use OpenZeppelin upgradeable patterns with beacon proxies
+
+## Cursor Rules & Skills Infrastructure
+
+### Architecture (as of 2026-02-13)
+
+Rules and skills live **directly in each repo** under `.cursor/rules/` and `.cursor/skills/`. There is NO submodule, NO external repo, and NO shared monorepo for Cursor configuration.
+
+**IMPORTANT:** The `shareland-cursor` repo was deleted. Do NOT reference it, create it, or propose submodules. The current approach is direct file copies.
+
+### Org-wide rules (synced to all eight active workspace repos)
+
+These 5 rules exist in `shareland-react`, `shareland-api`, `shareland-contracts`, `shareland-daemons`, `shareland-common`, `shareland-docs`, `shareland-mission-control` and `shareland-prototypes`:
+- `pr-workflow.mdc` — PR conventions, branch naming, per-repo checks, Tier A releases, `Relates to` (NOT `Closes`)
+- `planning-workflow.mdc` — Plan before implementing multi-file changes
+- `project-overview.mdc` — This file
+- `ticket-management.mdc` — Deployment tiers, GitHub Issues, project board field IDs, status/priority/size options
+- `shell-environment.mdc` — Windows/PowerShell compatibility
+
+`shareland-cities-lp` is deprecated and deliberately excluded.
+
+### Repo-specific rules
+- `frontend-conventions.mdc` — Only in `shareland-react`
+- `api-conventions.mdc` — Only in `shareland-api`
+- `mission-control.mdc`, `mission-control-scope.mdc`, `mission-control-tickets.mdc` — Only in `shareland-mission-control`
+
+**Precedence:** where a repo-specific rule and an org-wide rule disagree, the repo-specific rule wins for that repo. `mission-control-tickets.mdc` is the live example — it closes issues at deploy, where the org rule closes only after verification.
+
+### Skills per repo
+- **shareland-react:** cypress-testing, i18n-translations, pre-commit-checks, responsive-design, self-code-review, small-branch-planning
+- **shareland-api:** pre-commit-checks (bun-adapted), self-code-review, small-branch-planning
+- **shareland-contracts:** pre-commit-checks (bun/hardhat-adapted), self-code-review, small-branch-planning
+- **shareland-mission-control:** mission-control-ship
+- **shareland-daemons, shareland-common, shareland-docs, shareland-prototypes:** none yet
+
+### Changing org-wide rules
+
+The workspace-root `.cursor/rules/` is the **editing surface**, but it is not under version control — it is one person's multi-root workspace config. **Authority lives in the repos**: whatever is on `main` in each repo is what agents working there actually load. Keep the two aligned.
+
+1. Edit the copy in the workspace root `.cursor/rules/`
+2. Run `.\scripts\sync-org-rules.ps1 -Check` to see which repos differ from it, compared against `origin/main` rather than whatever branch happens to be checked out
+3. Run `.\scripts\sync-org-rules.ps1 -Apply` to stage the change. It builds each commit in a throwaway worktree off `origin/main`, so it can never inject a rules chore into someone's open feature branch
+4. Push the branches it created and open one PR per repo (direct push to `main` is fine for the Tier B repos)
+
+If you are in a single-repo window and cannot reach the workspace root, edit the rule in your repo, say so in the PR body, and ask for it to be propagated.
+
+### Intent tracking
+
+The project manager agent maintains `.cursor/plans/INTENTS.md` in the workspace root. This tracks all active work streams, PR statuses, and board state. Agents in repo-scoped windows won't see this file directly — use copy/paste for handoff.
+
+## GitHub Organization
+
+- Organization: `Shareland` (https://github.com/Shareland)
+- Project board: https://github.com/orgs/Shareland/projects/1/views/1
+- All PRs should reference GitHub Issues when applicable
+- PRs use `Relates to #XX` (NOT `Closes #XX`) to prevent auto-closing issues on merge

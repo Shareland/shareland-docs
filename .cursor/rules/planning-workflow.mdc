@@ -1,0 +1,80 @@
+---
+description: Plan before implementing - research the codebase and create plans for non-trivial changes
+alwaysApply: true
+---
+
+# Planning Workflow
+
+## Branch hygiene before starting
+
+- **Start from `main`**: Always begin work on the `main` branch (pull latest first). Create a new branch from `main` for the change.
+- **If not on `main`**: Check with the user before starting. There may be a reason to work from another branch; do not assume.
+
+## Prefer small branches and phased work
+
+- **Avoid monolithic PRs**: When planning, break work into smaller branches and PRs. Each PR should be one logical change (e.g. one phase of a feature, or one bug fix).
+- **Phased approach**: For larger efforts, define Phase I (minimal, shippable scope) and call out follow-up work as separate branches (e.g. "Phase II" or "bug: X" in another PR).
+- **Future work**: In the plan, list "Out of scope / separate branch" for related work (e.g. "Expand map modal → separate feature branch", "Map centering fix → separate bug branch").
+- **Cursor rules/skills**: Edits to `.cursor/rules/` or `.cursor/skills/` go on a separate branch and PR from feature/fix work; do not mix them in the same branch.
+
+## Tangential work discovered mid-task
+
+If you discover work that is **out of scope** for the current task (e.g. a bug, a Cursor rule/skill improvement, a small refactor), **do not add it to the current branch**.
+
+- **Do**: Create a **new branch from `main`** (or the repo's default branch), implement the tangential change there, and open a **separate PR**. Return to the original branch to continue the original task.
+- **Don't**: Commit the tangential fix or skill to the feature/fix branch and ship it in the same PR. That mixes scope and makes reviews harder.
+
+If in doubt, ask the user: "I found X while doing Y. Should I open a separate branch from main and PR it separately?"
+
+## Before Implementing Any Change
+
+1. **Research first**: Search the codebase to understand the current implementation before making changes. Identify all affected files across all repositories.
+
+2. **Assess scope**: If the change touches 5+ files or spans multiple repositories, create a written plan before coding.
+
+3. **Save plans for large changes**: For multi-file or cross-repo changes, save the plan to `.cursor/plans/<feature-name>.md` and wait for approval before implementing.
+
+4. **Plan format**:
+   ```markdown
+   # Plan: <Feature/Fix Name>
+   
+   ## Problem
+   <What needs to change and why>
+   
+   ## Affected Repositories
+   - [ ] shareland-react: <which files/components>
+   - [ ] shareland-api: <which routes/services>
+   - [ ] shareland-contracts: <which contracts>
+   
+   ## Implementation Steps
+   1. <Step with specific file paths>
+   2. <Step with specific file paths>
+   
+   ## Testing
+   - <How to verify the change works>
+   
+   ## Risks
+   - <Anything that could go wrong>
+   ```
+
+5. **Small changes** (1-4 files, single repo): Go ahead and implement directly. No plan file needed.
+
+## Plan File Locations
+
+There are two tiers of plan files:
+
+- **Workspace-level plans** (`shareland-exchange/.cursor/plans/`): Cross-repo plans, intent tracking, and project-wide coordination. These live outside any git repo and are managed by the project manager agent.
+- **Repo-level plans** (`<repo>/.cursor/plans/`): Repo-specific plans for agents working inside a single repo or worktree. These are gitignored and persist across branch switches.
+
+**If you are an agent in a single repo / worktree:**
+- Read and write plans in your repo's `.cursor/plans/` directory
+- This is how you communicate with the project manager and other agents
+- Check this directory when starting work — the PM may have left a plan for you
+
+**If you are the project manager (multi-root workspace):**
+- Keep cross-repo plans in the workspace root `.cursor/plans/`
+- When handing off work to a repo-specific agent, copy or write the plan into that repo's `.cursor/plans/` directory so the agent can see it
+
+## Continuing Previous Work
+
+When asked to continue work from a previous session, check `.cursor/plans/` for an existing plan file first. Use it as context for what was already decided and what remains to be done.

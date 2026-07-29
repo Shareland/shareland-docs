@@ -1,0 +1,110 @@
+---
+description: Cross-platform shell patterns — check <user_info> for the current user's OS and shell before running commands
+alwaysApply: true
+---
+
+# Shell Environment
+
+This team uses **mixed operating systems**: Windows (PowerShell) and macOS/Linux (bash/zsh). Always check the `<user_info>` block at the top of each conversation for the current user's `OS Version` and `Shell` before running commands.
+
+## Detecting the Shell
+
+The `<user_info>` block includes:
+- `OS Version: win32 ...` → user is on Windows, shell is PowerShell
+- `OS Version: darwin ...` → user is on macOS, shell is bash or zsh
+- `Shell: powershell` / `Shell: bash` / `Shell: zsh` → explicit shell
+
+**Always match your commands to the detected shell.** Do not assume bash.
+
+## PowerShell Patterns (Windows)
+
+### Git commits with multi-line messages
+
+PowerShell does not support bash-style heredocs (`<<'EOF'`). Use a temp file in `$env:TEMP`:
+
+```powershell
+$msg = @"
+Subject line here
+
+- Detail 1
+- Detail 2
+"@
+[System.IO.File]::WriteAllText("$env:TEMP\commit-msg.txt", $msg)
+git commit -F "$env:TEMP\commit-msg.txt"
+Remove-Item "$env:TEMP\commit-msg.txt" -Force
+```
+
+Or use multiple `-m` flags for short messages:
+
+```powershell
+git commit -m "Subject line" -m "Detail line"
+```
+
+### GitHub CLI (`gh`) with multi-line body
+
+Write the body to a temp file in `$env:TEMP`, use `--body-file`, then clean up:
+
+```powershell
+$body = @"
+## Summary
+- Change 1
+- Change 2
+"@
+[System.IO.File]::WriteAllText("$env:TEMP\gh-body.txt", $body)
+gh pr create --title "the title" --body-file "$env:TEMP\gh-body.txt"
+Remove-Item "$env:TEMP\gh-body.txt" -Force
+```
+
+**Important:** Always write temp files to `$env:TEMP`, NOT to the workspace. Writing to the workspace triggers Cursor's file watcher and may open the file on the user's desktop.
+
+### GitHub CLI (`gh`) GraphQL queries
+
+PowerShell mangles backslash escapes in double-quoted strings. Use `-f` variables or write the query to a temp file:
+
+```powershell
+# Use -f variables to avoid escaping issues
+gh api graphql -f query='query($owner:String!,$name:String!){repository(owner:$owner,name:$name){issues(first:5){nodes{title}}}}' -f owner=Shareland -f name=shareland-react
+```
+
+### Other PowerShell gotchas
+
+- **Command chaining:** Use `;` instead of `&&` — PowerShell does not support `&&` in older versions
+- **Single quotes in strings:** Use `''` to escape, or switch to double quotes
+- **String interpolation:** `$` is interpolated in double-quoted strings; use single quotes for literal `$`
+- **Home directory:** Use `$HOME` or `$env:USERPROFILE` instead of `~` (which may not expand in all contexts)
+- **`#` in strings:** PowerShell treats `#` as a comment character in some contexts; wrap the string in quotes
+
+## Bash / Zsh Patterns (macOS / Linux)
+
+### Git commits with multi-line messages
+
+Use heredocs:
+
+```bash
+git commit -m "$(cat <<'EOF'
+Subject line here
+
+- Detail 1
+- Detail 2
+EOF
+)"
+```
+
+### GitHub CLI (`gh`) with multi-line body
+
+Use heredocs directly:
+
+```bash
+gh pr create --title "the title" --body "$(cat <<'EOF'
+## Summary
+- Change 1
+- Change 2
+EOF
+)"
+```
+
+### Command chaining
+
+```bash
+git add . && git commit -m "message" && git push
+```
