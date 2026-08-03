@@ -144,7 +144,7 @@ Size:        PVTSSF_lADOBiArKM4AsZ5azgjVccg
 | Backlog | `9fce08f0` | Not yet planned for near-term work |
 | Up Next | `a808d070` | Planned for upcoming work |
 | In Progress | `b0d90514` | Actively being worked on |
-| In Review | `e4081d22` | Sign-off has happened; ready to merge. NOT simply "a PR exists" |
+| In Review | `e4081d22` | PR is open AND CI is green, and the author is requesting review ("someone look at this"). Not yet merged |
 | Merged | `708f0888` | PR merged, not yet deployed. **Not for deploy-on-merge repos** (see Ticket Flows) |
 | On Testnet | `a9783abd` | Deployed to testnet, awaiting verification — **exchange stack only** |
 | Live - Verify | `707ea972` | Deployed to production, needs verification |
@@ -191,8 +191,8 @@ When implementing a fix or feature linked to an issue:
 1. **Reference the issue** in your PR body using `Relates to #<number>` or `Part of #<number>`
 2. **Do NOT use `Closes #XX` or `Fixes #XX`** — auto-close on merge is disabled at the repo level, but avoid these keywords anyway to keep intent clear. Issues are closed manually after the change is deployed and verified.
 3. **Move the issue** to "In Progress" when you start working on it.
-4. **Keep it in "In Progress"** while the PR is open and iterating (CI fixes, Bugbot suggestions, back-and-forth with the reviewer). Do NOT move to "In Review" just because a PR exists.
-5. **Move to "In Review"** only when a maintainer signs off — the project lead directly, or an agent the lead explicitly asked to review the PR. An agent approving its own work, or another agent's unprompted, does NOT count; leave it In Progress.
+4. **Keep it in "In Progress"** while the PR is iterating (red CI, Bugbot suggestions, unaddressed review feedback). Do NOT move to "In Review" while CI is failing.
+5. **Move to "In Review" yourself when the PR is open AND CI is green** — it is the signal that you want review ("someone look at this"). Review and merge are handled by the maintainer (the project lead or the reviewer they delegated); do not merge your own PR. If review comes back with feedback, move the card back to "In Progress" while you address it.
 6. **Move to "Merged"** when the PR is merged, **unless the repo deploys on merge** — in `shareland-docs`, `shareland-mission-control` and `shareland-prototypes` the merge already put it live, so go straight to "Live - Verify". Later statuses follow the release process.
 
 ## Issue Lifecycle
@@ -202,12 +202,12 @@ When implementing a fix or feature linked to an issue:
 ```
 Backlog → Up Next → In Progress → In Review → Merged → On Testnet → Live - Verify → Closed
                          ↑                ↑
-                   PR created &      Maintainer signs off /
-                   CI iteration      approves the PR
+                   PR created &      PR open + CI green;
+                   CI iteration      author requests review
 ```
 
-- **In Progress** = actively being worked on, includes open PRs still iterating on CI/review feedback
-- **In Review** = a maintainer has approved the work; ready to merge
+- **In Progress** = actively being worked on, includes open PRs still iterating on CI or review feedback
+- **In Review** = PR open, CI green, review requested; the maintainer (or their delegated reviewer) reviews and merges from here
 - Issues are **only closed manually** after the fix/feature is verified on the target environment (testnet or mainnet). This ensures the board reflects what's actually live, not just what's been coded.
 
 **The other two flows (see Ticket Flows):**
@@ -223,7 +223,7 @@ When auditing the board ("take a PM pass"), cross-reference statuses with open P
 
 - **Check the repo's flow first** (see Ticket Flows) so you know which columns are even valid for that item.
 - **In Progress** means active work is happening, including open PRs iterating on feedback. Do not flag In Progress items for lacking a PR — that is the expected state.
-- **In Review** means a maintainer has approved the work. Flag any In Review item without sign-off.
+- **In Review** means the author is requesting review: the PR must be open with green CI. Flag any In Review item with no open PR or failing CI.
 - **Merged** requires the PR to be merged, and does not apply to the deploy-on-merge repos. If a PR was merged but the issue is still In Review, move it to Merged.
 - **In a deploy-on-merge repo, anything on `main` is already live** — it belongs in Live - Verify, not Merged.
 - Check recently merged PRs and ensure their linked issues are moved to Merged (or On Testnet / Live - Verify if already deployed).
