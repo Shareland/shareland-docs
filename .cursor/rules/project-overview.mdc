@@ -41,7 +41,7 @@ Also in the org but outside this workspace: `shareland-webapp` (the pre-split mo
 - **Tech**: React 18, TypeScript, Vite, Tailwind CSS, Radix UI
 - **Auth**: Privy (Web3Auth) with wagmi for wallet interactions
 - **State**: TanStack React Query for server state
-- **i18n**: i18next with 6 locales (en, zh-CN, de, es, fr, hi)
+- **i18n**: i18next with 7 locales (en, zh-CN, de, es, fr, hi, pt-BR); `npm run check-locales` keeps pt-BR at full key parity with en
 - **Testing**: Cypress for e2e tests, Storybook for component dev
 - **Analytics**: Amplitude
 - **Maps**: Mapbox GL
