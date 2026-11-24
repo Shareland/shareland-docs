@@ -20,7 +20,7 @@ Eight active repositories live in this workspace. Each belongs to one of three *
 
 | Repo | Purpose | How it deploys | Flow |
 |---|---|---|---|
-| `shareland-react` | Exchange front-end (share.land) | GitHub Actions on GitHub Release: **prerelease → testnet, release → mainnet** | Exchange stack |
+| `shareland-react` | Exchange front-end (share.land) | GitHub Actions on GitHub Release, deploying to **Vercel**: **draft/prerelease → the `dev` environment (testnet), release → production (mainnet)** | Exchange stack |
 | `shareland-api` | REST API, Prisma/Postgres | GitHub Release: **prerelease → staging, release → production**, building a Docker image to ECR. `workflow_dispatch` also available | Exchange stack |
 | `shareland-contracts` | Solidity contracts on Base | Operator-run Hardhat scripts, no CI/CD trail | Exchange stack |
 | `shareland-daemons` | Oracle, statistics, notification daemons | Manual `workflow_dispatch` to ECR then ECS | Exchange stack |
@@ -38,7 +38,7 @@ Note that `shareland-daemons` uses **`master`** as its default branch. Every oth
 Also in the org but outside this workspace: `shareland-webapp` (the pre-split monorepo, kept for reference only), `dev-tools`, `open-graph-scraper`, `trading-view-charting`. Ten dead repos were archived in July 2026.
 
 ### shareland-react (Frontend)
-- **Tech**: React 18, TypeScript, Vite, Tailwind CSS, Radix UI
+- **Tech**: React 19, TypeScript, Next.js 16 (App Router, SSR), Tailwind CSS, Radix UI
 - **Auth**: Privy (Web3Auth) with wagmi for wallet interactions
 - **State**: TanStack React Query for server state
 - **i18n**: i18next with 7 locales (en, zh-CN, de, es, fr, hi, pt-BR); `npm run check-locales` keeps pt-BR at full key parity with en
@@ -55,7 +55,7 @@ Also in the org but outside this workspace: `shareland-webapp` (the pre-split mo
 - **Deploy**: `api-build-docker.yml` on a full GitHub Release (production) and `api-staging-build-docker.yml` on a prerelease or draft (staging). Both also accept a manual `workflow_dispatch`.
 - **Auth**: Privy server-auth, Web3Auth signature verification
 - **Blockchain**: ethers.js, viem for contract interactions
-- **Services**: Sentry (error tracking), AWS S3, Resend (email), Google Sheets
+- **Services**: AWS S3, Resend (email), Google Sheets
 - **Daemons**: Statistics daemon, Oracle daemon, Database notifications daemon
 - **Package manager**: bun
 - **Lint/Format**: ESLint + Prettier (run `bun run format` then `bun run lint`)
